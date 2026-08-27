@@ -220,70 +220,71 @@ peers; all four said not me, and none could name the owner from evidence.
 Worth a line in the bible's header naming a route, so the next session does
 not pay this again.
 
-## 6. Open rulings — do not build on these
+## 5b. A hard constraint on future scenes, ruled 27 Aug 2026
 
-1. **The five victims' names.** The epilogue names five real murdered women
-   and the night ending asks the player why that was the easier ending to
-   arrange.
+**Never write a mission to retrieve one of the five Whitechapel murder
+victims.** Ruled by the Werk Nachtigall fork of the lore thread, and it is
+the sharpest trap Volume XI's own framing creates: under the Consistency
+Finding, "the programme can only take people the record was careless with"
+means these five women are *exactly* the profile Camp Iron Bell could reach.
+Writing that mission converts a real murdered woman into a rescue objective
+and makes her death a game state — precisely what §2 rule 2's spirit
+forbids, even though rules 1-3 are formally scoped to genocide rather than
+murder.
 
-   The governing rule is **section 2 rule 9**, not section 9 — section 9 is
-   the iteration log, and I had this wrong until a red-team session caught
-   it. Verify with `grep -n "^## " docs/LORE-BIBLE.md`. Verbatim, at
-   line 128:
+The correct use of that fact is restraint, not a scene: **if a player
+notices the programme could and has not, that is devastating and belongs in
+the game. If the player is ever handed the mission, it is grotesque.**
 
-   > 9. **Real victims' names are not used, ever.** Real perpetrators and
-   > real events may be cited factually in out-of-fiction material — this
-   > document, designer notes, a codex — where the whole point is
-   > historical grounding. In-fiction, the perpetrators are our invention.
+Confirmed compatible with what is already built: the ruling also settles
+that Mary Ann Nichols, Annie Chapman, Elizabeth Stride, Catherine Eddowes
+and Mary Jane Kelly should be named as people with lives — where they lived,
+what they did, who they had — never merely as "victims of a murderer," and
+never as a unit, retrieval target, or objective. Naming yes, playing never.
+Goulston Street already does this for Eddowes; nothing there needs to
+change.
 
-   **Two red-team sessions read this clause differently, which is itself
-   the reason it needs Dan.** One holds that the carve-out reaches a codex
-   and all five could be named there. The other holds that the carve-out is
-   attached to *perpetrators and events* and never mentions victims.
+## 6. Rulings — resolved, kept for the history
 
-   Reading it myself: the second is right. Sentence one is unqualified
-   about victims. Sentence two carves out perpetrators and events. Sentence
-   three is about perpetrators again. Victims appear once, in the absolute
-   sentence. On the text as written the answer is no, in-fiction **and** in
-   a codex.
+Sections 1-5 above are this document's earliest layer, written before any
+code existed. Everything below was open at the time and has since been
+ruled by the lore thread and built. Kept rather than deleted, because the
+reasoning is still useful, but do not treat anything phrased as a live
+question here as still open — check section 5b and the README first.
 
-   Section 2.2 ("victims are never units") does not apply — it is scoped to
-   victims of a real *genocide*, and Whitechapel is not that. So 2.9 is the
-   whole of the problem.
+1. **The five victims' names — RESOLVED, name them.** LORE-BIBLE.md §2 rule
+   9 was rewritten twice on 27 Aug 2026 after Dan said directly: *"use real
+   names,"* the philosophy is *"never forget,"* and the young generations
+   are forgetting. Current text: *"Real names are used in the fiction. They
+   are never playable."* Naming is required in narrative, dialogue,
+   documents and codex material; nothing real is ever a playable piece. My
+   own worry about §2.9 above was reading a version of the rule that no
+   longer exists — worth keeping as a record of how easily a superseded
+   rule can keep getting cited, which is exactly what happened next: a
+   dangling intermediate version of this same rule got quoted to me by a
+   different peer hours later, and had to be corrected again. See section
+   5b for the specific, sharper constraint this produced.
 
-   Against the text: this naming is doing the opposite of exploitation. It
-   is Hallie Rubenhold's argument in *The Five*, refusing to let five women
-   stay "the Ripper's victims" and nothing else. The rule was written to
-   stop real dead people being used as content, and a memorial is the one
-   use that is not that.
+2. **Kafka is out.** Unchanged. His three sisters — Elli, Valli and Ottla —
+   were murdered in the Holocaust; Ottla died at Auschwitz after
+   volunteering to accompany a transport of children out of Theresienstadt.
 
-   **This is Dan's call.** Not mine, not the bible owner's, and not two
-   agents agreeing with each other. Changing it means amending the
-   constitution, which is his to amend.
-
-2. **Kafka is out, and I am not treating this as open.** His three sisters
-   — Elli, Valli and Ottla — were murdered in the Holocaust; Ottla died at
-   Auschwitz after volunteering to accompany a transport of children out of
-   Theresienstadt. A playable Kafka in a universe whose thesis is "remove
-   Hitler and it still happens" is one step from rule 2 and the step is his
-   sisters. Flagged by the P42 session. Resolving it by simply not
-   mentioning the sisters would be worse than the inclusion.
-
-3. **Recency and adjacency, if any real person is ever used.** Achebe
-   (d. 2013), Morrison (d. 2019) and Marquez (d. 2014) are within living
-   memory with surviving families, and Achebe additionally sits on the
-   colonial axis the bible's Herero and Nama spine runs along. Section 4's
-   proposal removes this question rather than answering it, which is the
-   better outcome.
+3. **The cast redesign in section 4 made this moot.** Real authors never
+   became playable at all, so recency/adjacency for Achebe, Morrison and
+   Márquez never had to be answered.
 
 ## 7. Not yet true
 
-An explicit list, per CLAUDE.md rule 9, so nothing here reads as shipped:
+An explicit list, per CLAUDE.md rule 9, so nothing here reads as shipped or
+further behind than it is. Verify with `tools/shot.ps1` rather than this
+prose.
 
-- **No Godot code is written.** The directory scaffold exists and Godot
-  4.7.2 is verified present. That is all.
-- **The attention system in section 3 has never been played.** It is a
-  design, not a measurement. The first thing to build is a headless harness
-  that runs it at volume, before any art or story goes near it.
-- **No story text has been written** and none will be until ruling 1 lands.
-- **The five characters have names-by-function, not names.**
+- **Nothing is balanced.** Every combat number is a placeholder.
+- **Nothing past Goulston Street in Act One is built.**
+- **No codex or reflection screen exists** as a real UI - the Ledger and
+  Archive report their state as debug text at scene end, not as a screen.
+- **The six protagonists have a thesis and a bill each, not a written arc.**
+- **The Werk Nachtigall/Hyakki Yakō scenes for 1888 are unwritten.** Per
+  `world-aflame-godot/docs/WORLD-1888.md` §4, neither gets a retrieval
+  team - Werk Nachtigall is debris from a failed attempt, Hyakki Yakō is
+  never physically present.
