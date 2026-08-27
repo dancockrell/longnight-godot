@@ -8,6 +8,18 @@ extends RefCounted
 ## universe - LORE-BIBLE.md section 2 rule 9. Real authors, philosophers and
 ## historical figures appear as encountered NPCs and never as units.
 ##
+## THREE OF THESE ARE CANON, not local invention: Ferrer, Kell and Ruhl are
+## filed in world-aflame-godot/docs/WORLD-THE-SETTLED.md as three of the
+## nineteen people Camp Iron Bell has ever retrieved. That volume explicitly
+## reserves open slots for this ("add them here when you make them, do not
+## keep them in a game's local file") - the stat blocks below are downstream
+## of that entry, not the other way round. If the two ever disagree, the
+## shared doc wins and this file needs fixing.
+##
+## Moreau, Hune and Doig are camp-native (1944, never retrieved) and are
+## filed in the Personnel section of
+## world-aflame-godot/docs/WORLD-CAMP-IRON-BELL.md for the same reason.
+##
 ## Six because each has to carry a distinct argument about the programme, and
 ## six distinct arguments is as many as this story actually has. They are not
 ## six flavours of soldier; they are six answers to "what is Camp Iron Bell

@@ -37,6 +37,8 @@ func _init() -> void:
 	test_relational()
 	test_retrieval()
 	test_tutorial_graph()
+	test_goulston_graph()
+	test_goulston_choices()
 	_summary()
 	quit(1 if _fail > 0 else 0)
 
@@ -530,6 +532,121 @@ func test_tutorial_graph() -> void:
 	_ok("the refusal branch rejoins the form",
 		g0.has("refuse") and String(g0["refuse"]["next"]) == "the_form_again",
 		"refuse -> the_form_again")
+
+
+# ---------------------------------------------------- goulston street ---
+
+func test_goulston_graph() -> void:
+	print("\n[act one - goulston street graph]")
+	var g := GoulstonBeats.beats()
+	_ok("graph built", g.size() > 0, "%d beats" % g.size())
+
+	var dangling := 0
+	for id in g:
+		var beat: Dictionary = g[id]
+		var nxt := String(beat.get("next", ""))
+		if not nxt.is_empty() and not g.has(nxt):
+			dangling += 1
+		for c in beat.get("choices", []):
+			if not g.has(String(c["next"])):
+				dangling += 1
+	_ok("no beat points at a beat that does not exist", dangling == 0,
+		"checked %d beats" % g.size())
+
+	# Reuse TutorialBeats.reachable_from - it only reads "next"/"choices" keys
+	# generically and never touches TutorialBeats.Kind, so it works on any
+	# beat graph shaped this way. Reusing the checked implementation rather
+	# than re-writing graph traversal a second time.
+	var reachable := TutorialBeats.reachable_from("arrival", g)
+	if _sabotage == "orphan_goulston_beat":
+		reachable = PackedStringArray(["arrival"])
+	var orphans := 0
+	for id in g:
+		if not reachable.has(String(id)):
+			orphans += 1
+	_ok("every beat is reachable from arrival", orphans == 0,
+		"%d orphaned of %d" % [orphans, g.size()])
+
+	# The three choices must lead to three DIFFERENT outcome beats. If two
+	# collapsed to the same aftermath, the choice would be cosmetic.
+	var choice_beat: Dictionary = g["the_choice"]
+	var destinations := {}
+	for c in choice_beat["choices"]:
+		destinations[String(c["next"])] = true
+	if _sabotage == "collapse_goulston_choices":
+		destinations = {"aftermath_watched": true}
+	_ok("the three choices lead to three distinct outcomes",
+		destinations.size() == 3, "%d distinct destinations" % destinations.size())
+
+	# Every terminal beat must eventually reach codex_note. A choice that
+	# skipped the reflection beat would let the player miss the point.
+	for outcome in ["aftermath_watched", "aftermath_transcribed", "aftermath_intervened"]:
+		_ok("%s leads to the codex reflection" % outcome,
+			g.has(outcome) and String(g[outcome]["next"]) == "codex_note",
+			"checked directly")
+
+
+func test_goulston_choices() -> void:
+	print("\n[act one - the three choices produce three different survivals]")
+
+	# Fresh GameState-shaped systems per run, without depending on the
+	# autoload (this suite runs via --script, which does not init autoloads -
+	# see the Act 0 commit's note on this exact trap). Build the pieces by
+	# hand instead.
+	var scenarios := [
+		{"action": "watch", "expect_survives": false},
+		{"action": "transcribe", "expect_survives": true},
+		{"action": "intervene", "expect_survives": false},
+	]
+
+	# Two DISTINCT facts, matching the fix in goulston_scene.gd: the wall
+	# (always suppressed, Warren has custody of it) and the player's own
+	# record (never suppressed - a notebook in someone's pocket is not a
+	# thing Warren can send a constable to sponge). An earlier version
+	# suppressed both under one fact id, which meant "transcribe" - the
+	# choice specifically designed to survive - never could. This test is
+	# what caught that, and it stays written against the two-fact model so
+	# the same conflation cannot silently come back.
+	var checked := 0
+	for s in scenarios:
+		var ledger := Ledger.new()
+		var facts := Relational.new()
+		var exposure := Exposure.new(120)
+		var wall := "wall_test"
+		var record := "record_test"
+
+		ledger.witness(wall, 1888)
+		ledger.inscribe(wall, Ledger.Medium.CHALK)
+		ledger.suppress(wall, "Metropolitan Police, on Warren's order")
+
+		match String(s["action"]):
+			"watch":
+				facts.hold(record, "protagonist", true)
+				ledger.witness(record, 1888)
+			"transcribe":
+				facts.hold(record, "protagonist", true)
+				ledger.witness(record, 1888)
+				ledger.inscribe(record, Ledger.Medium.FILED_PAPER)
+				facts.hold(record, "halse_transcription", true)
+			"intervene":
+				facts.hold(record, "protagonist", true)
+				ledger.witness(record, 1888)
+				exposure.spend(30, "test intervention")
+				exposure.witness("test intervention witnessed")
+
+		_ok("the wall is lost regardless of the player's choice ('%s')" % String(s["action"]),
+			not ledger.survives(wall), ledger.why_lost(wall))
+
+		var survives: bool = ledger.survives(record)
+		if _sabotage == "flip_transcribe_survival" and String(s["action"]) == "transcribe":
+			survives = false
+		_ok("'%s' record survival matches design intent" % String(s["action"]),
+			survives == bool(s["expect_survives"]),
+			"got survives=%s, expected=%s" % [survives, s["expect_survives"]])
+		checked += 1
+
+	_ok("all three scenarios were actually run", checked == scenarios.size(),
+		"%d of %d" % [checked, scenarios.size()])
 
 
 # --------------------------------------------------------------- summary ---
