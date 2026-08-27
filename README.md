@@ -93,10 +93,14 @@ placeholder text.
 - **Two scenes of Act One are built: Goulston Street and Flower and Dean
   Street.** The mortuary shed, Clerkenwell, and Carfax are designed in the
   old canvas game and not yet ported.
-- **No codex or reflection screen exists.** The Ledger, Archive and
-  Retrieval systems are fully wired into play but only report their state
-  as debug text at the end of a scene, not as a screen a player would
-  recognise as part of a game.
+- **The register screen (`scenes/Register.tscn`) is built** — a flat
+  parish-register view of every subject assessed, in the programme's own
+  voice. Ruled by the lore thread as "state, not causation": a row may say
+  what is true now, never what made it true or who changed it, and
+  background entries the player never touched sit in the same list, in the
+  same shape, as the ones they did — a field that only appears where the
+  player acted would be a scoreboard. Both the causation-word ban and the
+  no-scoreboard rule are enforced as tests, not just followed by convention.
 - **Werk Nachtigall's presence in 1888 is built, Hyakki Yakō's is not.**
   Per `world-aflame-godot/docs/wiki/` (ruled by the Chrono fork of the lore
   thread), neither faction gets a rival retrieval team — only Project 42

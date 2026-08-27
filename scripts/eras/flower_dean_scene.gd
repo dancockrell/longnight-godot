@@ -67,21 +67,18 @@ func _advance(next_id: String, action: String) -> void:
 
 func _depart() -> void:
 	header.text = "END OF BUILT CONTENT"
-	var f: Retrieval.Finding = GameState.signed_findings[-1] if not GameState.signed_findings.is_empty() else null
-	var finding_line := "No finding was recorded this scene." if f == null else f.to_form_text()
-	# The cellar record has no suppressor anywhere in this scene - nobody in
-	# 1888 has reason to erase a field report about a German cellar the way
-	# Warren had reason to erase the Goulston Street wall - so it always
-	# survives under the current design. Reporting that plainly rather than
-	# keeping a why_lost() branch that nothing in this scene can trigger.
+	# Deliberately NOT showing what any specific finding says here - per
+	# world-aflame-godot's state-not-causation ruling, that belongs only in
+	# the register screen, in the register's own flat and uniform shape.
+	# Reporting a specific finding on this end-of-scene debug screen would
+	# be exactly the "before/after, right after you did it" causation signal
+	# the ruling forbids.
 	body.text = "\n".join(PackedStringArray([
 		"Exposure spent this scene: %d" % GameState.exposure.value,
-		"",
-		"Most recent finding on file:",
-		finding_line,
 		"",
 		"The cellar record survives, filed.",
 	]))
 	for child in buttons.get_children():
 		child.queue_free()
+	buttons.add_child(make_button("Check the register.", func(): get_tree().change_scene_to_file("res://scenes/Register.tscn")))
 	teaches.text = "teaches: nothing further is built past this point yet."

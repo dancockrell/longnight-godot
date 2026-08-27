@@ -41,6 +41,7 @@ func _init() -> void:
 	test_goulston_choices()
 	test_flower_dean_graph()
 	test_flower_dean_investigator_choice()
+	test_register()
 	_summary()
 	quit(1 if _fail > 0 else 0)
 
@@ -743,6 +744,75 @@ func test_flower_dean_investigator_choice() -> void:
 	_ok("the two choices produce genuinely different findings",
 		finding_help.consistent != finding_hinder.consistent,
 		"help=%s hinder=%s" % [finding_help.consistent, finding_hinder.consistent])
+
+
+# ------------------------------------------------------------- register ---
+
+func test_register() -> void:
+	print("\n[the register - state, not causation]")
+
+	# A finding the "player" caused, mirroring what flower_dean_scene.gd's
+	# help branch actually produces.
+	var caused := Retrieval.assess("player_touched_subject", Retrieval.Certainty.DOCUMENTED, "")
+	var rows := Register.build([caused])
+
+	var n := rows.size()
+	_ok("register is non-empty", n > 0, "%d rows" % n)
+	if n == 0:
+		_skipped("all remaining register checks", "register is empty, nothing to check against")
+		return
+
+	# The whole point: background rows the player never touched must be
+	# present alongside the caused one, in the same count as declared.
+	var background_count := 0
+	var caused_count := 0
+	for r in rows:
+		if r.subject_id == "player_touched_subject":
+			caused_count += 1
+		else:
+			background_count += 1
+	if _sabotage == "register_scoreboard_only":
+		background_count = 0
+	_ok("background entries the player never touched are present",
+		background_count == Register.BACKGROUND_SUBJECTS.size() and caused_count == 1,
+		"%d background + %d caused = %d of %d expected" % [
+			background_count, caused_count, background_count + caused_count,
+			Register.BACKGROUND_SUBJECTS.size() + 1])
+
+	# No field anywhere distinguishes a caused row from a background one -
+	# checked structurally, not just by eye. Every Row must expose the exact
+	# same property set regardless of origin.
+	var prop_names := func(r): return (r.get_property_list() as Array).map(func(p): return String(p["name"]))
+	var shapes_differ := false
+	var first_shape: Array = prop_names.call(rows[0])
+	for r in rows:
+		if prop_names.call(r) != first_shape:
+			shapes_differ = true
+	_ok("every row has an identical shape regardless of origin", not shapes_differ,
+		"checked %d rows" % n)
+
+	# The lexical test, extended from the beats to the register: the exact
+	# four words the ruling forbids must never appear in any rendered line.
+	var forbidden_words = ["because", " now", "no longer", "since"]
+	var violations := 0
+	for r in rows:
+		var line: String = r.to_line().to_lower()
+		for w in forbidden_words:
+			if line.contains(w):
+				violations += 1
+	if _sabotage == "register_states_causation":
+		violations += 1
+	_ok("no rendered row uses a causation word", violations == 0,
+		"checked %d rows against %d forbidden words" % [n, forbidden_words.size()])
+
+	# Sorted by subject id, not by insertion order - insertion order would
+	# put the caused row in a fixed, predictable position (last), which is
+	# itself a causation signal.
+	var sorted_ids := rows.map(func(r): return r.subject_id)
+	var expected := sorted_ids.duplicate()
+	expected.sort()
+	_ok("rows are sorted by subject id, not by when they were added",
+		sorted_ids == expected, "checked ordering of %d rows" % n)
 
 
 # --------------------------------------------------------------- summary ---
