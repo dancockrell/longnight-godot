@@ -39,6 +39,8 @@ func _init() -> void:
 	test_tutorial_graph()
 	test_goulston_graph()
 	test_goulston_choices()
+	test_flower_dean_graph()
+	test_flower_dean_investigator_choice()
 	_summary()
 	quit(1 if _fail > 0 else 0)
 
@@ -657,6 +659,90 @@ func test_goulston_choices() -> void:
 
 	_ok("all three scenarios were actually run", checked == scenarios.size(),
 		"%d of %d" % [checked, scenarios.size()])
+
+
+# ---------------------------------------------------- flower and dean ---
+
+func test_flower_dean_graph() -> void:
+	print("\n[act one, scene two - flower and dean street graph]")
+	var g := FlowerDeanBeats.beats()
+	_ok("graph built", g.size() > 0, "%d beats" % g.size())
+
+	var dangling := 0
+	for id in g:
+		var beat: Dictionary = g[id]
+		var nxt := String(beat.get("next", ""))
+		if not nxt.is_empty() and not g.has(nxt):
+			dangling += 1
+		for c in beat.get("choices", []):
+			if not g.has(String(c["next"])):
+				dangling += 1
+	_ok("no beat points at a beat that does not exist", dangling == 0,
+		"checked %d beats" % g.size())
+
+	var reachable := TutorialBeats.reachable_from("arrival", g)
+	if _sabotage == "orphan_flower_dean_beat":
+		reachable = PackedStringArray(["arrival"])
+	var orphans := 0
+	for id in g:
+		if not reachable.has(String(id)):
+			orphans += 1
+	_ok("every beat is reachable from arrival", orphans == 0,
+		"%d orphaned of %d" % [orphans, g.size()])
+
+	# Both choice points in this scene must lead to genuinely distinct beats,
+	# same reasoning as Goulston Street's chooser test.
+	for choice_beat_id in ["the_choice", "the_cellar_choice"]:
+		var beat: Dictionary = g[choice_beat_id]
+		var destinations := {}
+		for c in beat["choices"]:
+			destinations[String(c["next"])] = true
+		_ok("%s leads to distinct outcomes" % choice_beat_id, destinations.size() == beat["choices"].size(),
+			"%d distinct of %d choices" % [destinations.size(), beat["choices"].size()])
+
+	# The two things this scene must never say out loud must never appear as
+	# literal text in any beat's lines. This is a blunt lexical check, not a
+	# semantic one, but it catches the most likely accidental regression: a
+	# future edit adding an explanatory line that states the point instead
+	# of letting the mechanic make it.
+	var forbidden := ["programme benefits", "could retrieve", "nobody has suggested retrieving"]
+	var violations := PackedStringArray()
+	for id in g:
+		var beat: Dictionary = g[id]
+		var text := " ".join(PackedStringArray(beat.get("lines", []))).to_lower()
+		for phrase in forbidden:
+			if text.contains(phrase):
+				violations.append("%s contains '%s'" % [id, phrase])
+	if _sabotage == "state_the_unspoken_thing":
+		violations.append("codex_note contains 'programme benefits' (forced)")
+	_ok("neither unspoken conclusion is stated as dialogue anywhere in the scene",
+		violations.is_empty(), "checked %d beats against %d forbidden phrases" % [g.size(), forbidden.size()])
+
+
+func test_flower_dean_investigator_choice() -> void:
+	print("\n[the investigator choice actually changes the finding]")
+
+	# Mirror flower_dean_scene.gd's _advance() logic directly for "help",
+	# without depending on the autoload (see the Act 0 note on --script mode).
+	var facts_help := Relational.new()
+	var sid := "resident_test"
+	facts_help.hold(sid, "flower_dean_parish_ledger", true)
+	var finding_help := Retrieval.assess(sid, Retrieval.Certainty.DOCUMENTED, "")
+
+	var facts_hinder := Relational.new()
+	facts_hinder.hold(sid, "flower_dean_parish_ledger", false)
+	var finding_hinder := Retrieval.assess(sid, Retrieval.Certainty.DISPUTED, "")
+
+	if _sabotage == "flatten_investigator_choice":
+		finding_help.consistent = finding_hinder.consistent
+
+	_ok("helping her enter the record makes the subject un-retrievable",
+		not finding_help.consistent, Retrieval.CERTAINTY_NAME[finding_help.certainty])
+	_ok("hindering her leaves the subject retrievable",
+		finding_hinder.consistent, Retrieval.CERTAINTY_NAME[finding_hinder.certainty])
+	_ok("the two choices produce genuinely different findings",
+		finding_help.consistent != finding_hinder.consistent,
+		"help=%s hinder=%s" % [finding_help.consistent, finding_hinder.consistent])
 
 
 # --------------------------------------------------------------- summary ---

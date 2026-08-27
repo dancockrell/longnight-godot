@@ -90,18 +90,23 @@ placeholder text.
   measurement, not by tuning.
 - **The six protagonists have a thesis and a bill each, not a written arc.**
   Good enough for a select screen, not for a party that argues with itself.
-- **Nothing past Goulston Street in Act One is built** — Flower and Dean
-  Street, the mortuary shed, Clerkenwell, and Carfax are designed in the old
-  canvas game and not yet ported.
-- **No codex or reflection screen exists.** The Ledger and Archive systems
-  are fully wired into play but only report their state as debug text at the
-  end of a scene, not as a screen a player would recognise as part of a game.
-- **The Werk Nachtigall and Hyakki Yakō scenes are unwritten**, and per
-  `world-aflame-godot/docs/WORLD-1888.md` §4 (ruled 27 Aug 2026) they are
-  **not** rival retrieval teams — only Project 42 has Chrono, and giving the
-  other two factions retrieval teams would flatten that asymmetry. Werk
-  Nachtigall in 1888 is debris: a failed Imperial attempt, apparatus and
-  possibly a body, found cold with no German character ever on screen.
+- **Two scenes of Act One are built: Goulston Street and Flower and Dean
+  Street.** The mortuary shed, Clerkenwell, and Carfax are designed in the
+  old canvas game and not yet ported.
+- **No codex or reflection screen exists.** The Ledger, Archive and
+  Retrieval systems are fully wired into play but only report their state
+  as debug text at the end of a scene, not as a screen a player would
+  recognise as part of a game.
+- **Werk Nachtigall's presence in 1888 is built, Hyakki Yakō's is not.**
+  Per `world-aflame-godot/docs/wiki/` (ruled by the Chrono fork of the lore
+  thread), neither faction gets a rival retrieval team — only Project 42
+  has Chrono. Werk Nachtigall in 1888 is debris, built as the cellar beat
+  in Flower and Dean Street: a failed Imperial attempt, apparatus and
+  possibly a body, no German character ever on screen, and the fact that a
+  Werk Nachtigall casualty passes the Consistency Finding perfectly is
+  never stated by anyone — it's enforced as a lexical check in the test
+  suite rather than a line of dialogue. Hyakki Yakō is never physically
+  present at all and has no scene yet.
   Hyakki Yakō is never physically present at all — the watcher isn't bound
   by time, so an already-fused agent simply feels what they always feel,
   and it is never confirmed or explained on screen. Both unwritten.

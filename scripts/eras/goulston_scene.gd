@@ -90,9 +90,7 @@ func _advance(next_id: String, action: String) -> void:
 
 
 func _depart() -> void:
-	# Nothing further built yet. Report state honestly rather than pretend
-	# there's a next scene - see docs/DESIGN.md section 7, "not yet true".
-	header.text = "END OF BUILT CONTENT"
+	header.text = "MORNING"
 	var survived := GameState.ledger.survives(FACT_RECORD)
 	var why := GameState.ledger.why_lost(FACT_RECORD)
 	var disputed := GameState.facts.disputed()
@@ -103,7 +101,14 @@ func _depart() -> void:
 		("Why not: " + why) if not survived else "It is filed, and it does not match every other filed account of the same four minutes - which is correct, not an error.",
 		"",
 		"Disputed facts in this playthrough: %d" % disputed.size(),
+		"",
+		"The morning goes on. There is a street a few minutes' walk from here that nobody has briefed you on, because there was nobody specific to brief you on.",
 	]))
 	for child in buttons.get_children():
 		child.queue_free()
-	teaches.text = "teaches: nothing further is built past this point yet."
+	buttons.add_child(make_button("Walk on.", _go_to_flower_dean))
+	teaches.text = "teaches: the record you just tried to keep is one street's worth. There is more than one street."
+
+
+func _go_to_flower_dean() -> void:
+	get_tree().change_scene_to_file("res://scenes/FlowerDean.tscn")
