@@ -96,6 +96,12 @@ placeholder text.
 - **No codex or reflection screen exists.** The Ledger and Archive systems
   are fully wired into play but only report their state as debug text at the
   end of a scene, not as a screen a player would recognise as part of a game.
-- The rival faction encounters (Werk Nachtigall, Hyakki Yakō retrieval teams
-  in the same era) are unwritten. Their voice systems belong to the World
-  Aflame card canon and will be taken from there, not invented here.
+- **The Werk Nachtigall and Hyakki Yakō scenes are unwritten**, and per
+  `world-aflame-godot/docs/WORLD-1888.md` §4 (ruled 27 Aug 2026) they are
+  **not** rival retrieval teams — only Project 42 has Chrono, and giving the
+  other two factions retrieval teams would flatten that asymmetry. Werk
+  Nachtigall in 1888 is debris: a failed Imperial attempt, apparatus and
+  possibly a body, found cold with no German character ever on screen.
+  Hyakki Yakō is never physically present at all — the watcher isn't bound
+  by time, so an already-fused agent simply feels what they always feel,
+  and it is never confirmed or explained on screen. Both unwritten.
