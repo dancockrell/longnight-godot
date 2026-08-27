@@ -28,15 +28,31 @@ measurement that proved it is in `tests/sweep_exposure.gd`.
 
 ## Lore
 
-`world-aflame-godot/docs/LORE-BIBLE.md` governs. This repository proposes;
-it does not rule. Two constraints that shape everything here:
+`world-aflame-godot/docs/LORE-BIBLE.md` governs, and the Project 42 lore
+master owns it. This repository proposes; it does not rule.
 
-- **No real person is ever a playable piece** (bible §2 rule 9). All six
-  protagonists are inventions. Real authors and philosophers appear as
-  encountered NPCs and never as units.
-- **Every protagonist carries a bill** (bible §2 rule 6 — the Allies do not
-  get a clean war). The test suite enforces this against the roster count, so
-  adding a seventh cannot skip the check.
+**Two layers, and they never trade places.**
+
+- The **Archive** is our own history. Real names, sourced, plainly told. It is
+  not in the alternate history and never says "in this world".
+- The **game** is the alternate history, with invented names throughout.
+
+The seam between them is the project's governing philosophy — **never forget**
+— resolved into a rule: **names go in the record, not on the roster.** Yad
+Vashem names Ottla Kafka; it does not give her a stat line. No real person is
+ever a playable unit, and real people are named in the Archive, where naming
+is the whole point.
+
+`scripts/core/archive.gd` enforces that in code rather than in a comment: an
+entry without a recorded source, or with sources nobody has checked against
+the text, **cannot be displayed**. Not "should not" — cannot. Entries that
+are withheld report why. A memorial project that will repeat a claim it cannot
+substantiate is worth less than none, because the first error someone catches
+discredits every true thing next to it.
+
+The other standing constraint: **every protagonist carries a bill** — the
+Allies do not get a clean war. The suite enforces this against the roster
+count, so adding a seventh cannot skip the check.
 
 ## Running it
 

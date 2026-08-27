@@ -33,6 +33,7 @@ func _init() -> void:
 	test_battle_resolves()
 	test_loud_wins_cost_more()
 	test_ledger()
+	test_archive()
 	_summary()
 	quit(1 if _fail > 0 else 0)
 
@@ -289,6 +290,62 @@ func test_ledger() -> void:
 		"%d survived + %d lost = %d of %d witnessed" % [survived, lost, survived + lost, n])
 	_ok("the ledger can report losses, not only successes", lost > 0,
 		"%d lost, each with a stated reason" % lost)
+
+
+# --------------------------------------------------------------- archive ---
+
+func test_archive() -> void:
+	print("\n[the archive - real history, sourced or withheld]")
+	var a := Archive.build_default()
+	var n := a.count()
+	_ok("archive has entries", n > 0, "%d entries" % n)
+	if n == 0:
+		_skipped("all remaining archive checks", "archive is empty, nothing to check against")
+		return
+
+	# The rule the whole layer exists for: an unsourced claim about real people
+	# cannot reach a player. Run where the wrong answer is available - there
+	# are both sourced and unsourced entries in the same archive, so this is
+	# a chooser test rather than a check that everything is one way.
+	var shown := a.displayable()
+	var held := a.withheld()
+	_ok("every entry is either displayable or withheld with a reason",
+		shown.size() + held.size() == n,
+		"%d shown + %d withheld = %d of %d" % [shown.size(), held.size(), shown.size() + held.size(), n])
+	_ok("the archive contains both kinds, so this is a real test",
+		shown.size() > 0 and held.size() > 0,
+		"%d sourced, %d not" % [shown.size(), held.size()])
+
+	var unsourced_shown := 0
+	for e in shown:
+		if e.sources.is_empty() or not e.verified:
+			unsourced_shown += 1
+	if _sabotage == "publish_unsourced":
+		unsourced_shown = 1
+	_ok("no unsourced or unverified entry is displayable", unsourced_shown == 0,
+		"checked all %d displayable entries" % shown.size())
+
+	# A withheld entry must say why. "Not shown" with no reason is the silent
+	# skip CLAUDE.md rule 1 is about.
+	var reasonless := 0
+	for id in held:
+		if String(held[id]).strip_edges().is_empty():
+			reasonless += 1
+	_ok("every withheld entry states its reason", reasonless == 0,
+		"checked %d withheld" % held.size())
+
+	# Real names belong here and nowhere else. Assert the seam directly: a
+	# name that appears in the Archive must not appear on the roster.
+	var roster_names := ""
+	for p in Roster.PROTAGONISTS:
+		roster_names += String(p["name"]) + " "
+	var leaked := PackedStringArray()
+	for real_name in ["Eddowes", "Kafka", "Ringelblum", "Warren", "Halse", "Arnold"]:
+		if roster_names.contains(real_name):
+			leaked.append(real_name)
+	_ok("no real person named in the archive appears on the playable roster",
+		leaked.is_empty(),
+		"checked %d real names against %d protagonists" % [6, Roster.PROTAGONISTS.size()])
 
 
 # --------------------------------------------------------------- summary ---
