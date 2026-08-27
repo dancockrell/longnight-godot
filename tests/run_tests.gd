@@ -42,6 +42,7 @@ func _init() -> void:
 	test_flower_dean_graph()
 	test_flower_dean_investigator_choice()
 	test_register()
+	test_mortuary_graph()
 	_summary()
 	quit(1 if _fail > 0 else 0)
 
@@ -813,6 +814,107 @@ func test_register() -> void:
 	expected.sort()
 	_ok("rows are sorted by subject id, not by when they were added",
 		sorted_ids == expected, "checked ordering of %d rows" % n)
+
+	# No real person may ever be a Row, even one that correctly reads NOT
+	# AVAILABLE - per the mortuary shed ruling, giving a real murdered woman
+	# a row at all makes her a subject of the retrievability schema, which
+	# is forbidden regardless of which direction the answer points.
+	var real_name_hits := 0
+	for subject_id in Register.BACKGROUND_SUBJECTS:
+		var lower := String(subject_id).to_lower()
+		for name in Register.FORBIDDEN_REAL_NAMES:
+			if lower.contains(name):
+				real_name_hits += 1
+	if _sabotage == "add_real_name_to_register":
+		real_name_hits += 1
+	_ok("no real person appears as a register subject, in either direction",
+		real_name_hits == 0, "checked %d background subjects against %d forbidden names" % [
+			Register.BACKGROUND_SUBJECTS.size(), Register.FORBIDDEN_REAL_NAMES.size()])
+
+	# The background table itself must have per-subject variety, not one
+	# uniform certainty for everyone - an earlier version defaulted every
+	# background subject to DOCUMENTED, which was backwards for this
+	# setting's own established fact that the casual poor mostly pass 42-D.
+	var certainties_seen := {}
+	for subject_id in Register.BACKGROUND_SUBJECTS:
+		certainties_seen[Register.BACKGROUND_SUBJECTS[subject_id]] = true
+	if _sabotage == "flatten_background_certainty":
+		certainties_seen = {Retrieval.Certainty.DOCUMENTED: true}
+	_ok("background subjects are not all the same certainty",
+		certainties_seen.size() > 1, "%d distinct certainties among %d subjects" % [
+			certainties_seen.size(), Register.BACKGROUND_SUBJECTS.size()])
+
+
+# ------------------------------------------------------------- mortuary ---
+
+func test_mortuary_graph() -> void:
+	print("\n[act one, scene three - the mortuary shed graph]")
+	var g := MortuaryBeats.beats()
+	_ok("graph built", g.size() > 0, "%d beats" % g.size())
+
+	var dangling := 0
+	for id in g:
+		var beat: Dictionary = g[id]
+		var nxt := String(beat.get("next", ""))
+		if not nxt.is_empty() and not g.has(nxt):
+			dangling += 1
+		for c in beat.get("choices", []):
+			if not g.has(String(c["next"])):
+				dangling += 1
+	_ok("no beat points at a beat that does not exist", dangling == 0,
+		"checked %d beats" % g.size())
+
+	var reachable := TutorialBeats.reachable_from("arrival", g)
+	if _sabotage == "orphan_mortuary_beat":
+		reachable = PackedStringArray(["arrival"])
+	var orphans := 0
+	for id in g:
+		if not reachable.has(String(id)):
+			orphans += 1
+	_ok("every beat is reachable from arrival", orphans == 0,
+		"%d orphaned of %d" % [orphans, g.size()])
+
+	var choice_beat: Dictionary = g["the_choice"]
+	var destinations := {}
+	for c in choice_beat["choices"]:
+		destinations[String(c["next"])] = true
+	_ok("the report choice leads to distinct outcomes",
+		destinations.size() == choice_beat["choices"].size(),
+		"%d distinct of %d choices" % [destinations.size(), choice_beat["choices"].size()])
+
+	# This scene's own forbidden vocabulary, per the ruling: no Ripper, no
+	# murderer, no investigation, no suspects, no mythology, and no body
+	# described. Checked the same way Flower and Dean Street's unspoken
+	# conclusions are checked - a lexical scan, not a promise.
+	var forbidden := ["ripper", "murderer", "investigation", "suspect", "strangl",
+		"stab", "wound", "blood", "corpse", "mutilat"]
+	var violations := PackedStringArray()
+	for id in g:
+		var beat: Dictionary = g[id]
+		var text := " ".join(PackedStringArray(beat.get("lines", []))).to_lower()
+		for phrase in forbidden:
+			if text.contains(phrase):
+				violations.append("%s contains '%s'" % [id, phrase])
+	if _sabotage == "describe_a_body":
+		violations.append("the_ledger contains 'wound' (forced)")
+	_ok("no Ripper language and no body description anywhere in the scene",
+		violations.is_empty(), "checked %d beats against %d forbidden words" % [g.size(), forbidden.size()])
+
+	# The scene must never call Retrieval.assess() on anything - it has no
+	# retrieval-affecting choice by design (see mortuary_beats.gd's header).
+	# Checked structurally by confirming no choice in this graph carries a
+	# "help"/"hinder"-style action that flower_dean_scene.gd would recognise
+	# as retrieval-affecting; this scene's only actions are "record"/"silent".
+	var actions_seen := {}
+	for id in g:
+		for c in g[id].get("choices", []):
+			actions_seen[String(c.get("action", ""))] = true
+	var retrieval_actions := PackedStringArray()
+	for a in actions_seen:
+		if String(a) in ["help", "hinder", "take_subject", "retrieve"]:
+			retrieval_actions.append(String(a))
+	_ok("no choice in this scene is retrieval-shaped", retrieval_actions.is_empty(),
+		"checked %d distinct actions: %s" % [actions_seen.size(), str(actions_seen.keys())])
 
 
 # --------------------------------------------------------------- summary ---

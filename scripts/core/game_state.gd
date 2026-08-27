@@ -12,6 +12,14 @@ signal era_changed(era_id: String)
 var protagonist_id: String = ""
 var era_id: String = "camp_iron_bell"
 
+## The actual current scene path, tracked separately from era_id. era_id
+## covers a whole period (three scenes so far share "london_1888") and
+## cannot tell them apart; this is what the register screen uses to return
+## to whichever specific scene actually opened it, so hardcoding a return
+## path in that screen does not silently break as soon as a third scene
+## links there. Set by each scene's own _ready(), not inferred.
+var current_scene_path: String = "res://scenes/Camp.tscn"
+
 var exposure: Exposure = null
 var ledger: Ledger = null
 var facts: Relational = null
@@ -71,3 +79,11 @@ func go_to_era(id: String, ceiling: int) -> void:
 	era_id = id
 	exposure = Exposure.new(ceiling)
 	era_changed.emit(id)
+
+
+func mark_current_scene(path: String) -> void:
+	current_scene_path = path
+
+
+func era_scene_path() -> String:
+	return current_scene_path

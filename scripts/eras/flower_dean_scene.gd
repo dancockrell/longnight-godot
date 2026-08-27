@@ -15,6 +15,7 @@ const CELLAR_FACT := "cellar_apparatus"
 
 func _ready() -> void:
 	super._ready()
+	GameState.mark_current_scene("res://scenes/FlowerDean.tscn")
 	apply_palette(EraPalette.london_1888())
 	graph = FlowerDeanBeats.beats()
 	goto("arrival")
@@ -80,5 +81,6 @@ func _depart() -> void:
 	]))
 	for child in buttons.get_children():
 		child.queue_free()
-	buttons.add_child(make_button("Check the register.", func(): get_tree().change_scene_to_file("res://scenes/Register.tscn")))
-	teaches.text = "teaches: nothing further is built past this point yet."
+	buttons.add_child(make_button("Walk on.", func(): get_tree().change_scene_to_file("res://scenes/Mortuary.tscn")))
+	buttons.add_child(make_button("Check the register first.", func(): get_tree().change_scene_to_file("res://scenes/Register.tscn")))
+	teaches.text = "teaches: the record you are building has more than one street's worth in it now."

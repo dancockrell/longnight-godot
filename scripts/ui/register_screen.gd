@@ -80,10 +80,14 @@ func _ready() -> void:
 	spacer3.custom_minimum_size = Vector2(0, 16)
 	col.add_child(spacer3)
 
+	# Returns to the era the register was reached from rather than a
+	# hardcoded scene, since more than one scene now links here (Flower and
+	# Dean Street, the mortuary shed) and hardcoding one would silently
+	# break as soon as a third did.
 	var back := Button.new()
 	back.text = "Close"
 	back.custom_minimum_size = Vector2(160, 38)
-	back.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/FlowerDean.tscn"))
+	back.pressed.connect(func(): get_tree().change_scene_to_file(GameState.era_scene_path()))
 	col.add_child(back)
 
 

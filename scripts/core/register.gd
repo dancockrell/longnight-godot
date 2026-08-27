@@ -37,18 +37,48 @@ class Row extends RefCounted:
 
 
 ## Background entries: parish register subjects nobody in this playthrough
-## has ever acted on. Most real registers are DOCUMENTED already for reasons
-## that have nothing to do with any player - that is simply what a parish
-## does - so these default to DOCUMENTED/unavailable, the ordinary case, per
-## the ruling's own reasoning. Invented, per the no-real-people rule -
-## nobody here is a real Whitechapel resident.
-const BACKGROUND_SUBJECTS := [
-	"a_carman_lodging_on_thrawl_street",
-	"a_seamstress_no_fixed_address",
-	"a_dock_labourer_hired_by_the_half_day",
-	"an_unnamed_infant_workhouse_register",
-	"a_pedlar_three_names_in_two_years",
-]
+## has ever acted on. Invented, per the no-real-people rule - nobody here is
+## a real Whitechapel resident, and NO REAL PERSON MAY EVER BE ADDED TO THIS
+## MAP, not even in the "safe" DOCUMENTED/unavailable direction. The mortuary
+## shed ruling (world-aflame-godot docs/wiki/places/the-mortuary-shed.md) is
+## explicit that a real murdered woman is "not an objective, not a subject,
+## not a choice" - giving her a Row at all, even one that correctly reads
+## NOT AVAILABLE, would still make her a subject of a system whose entire
+## schema is "is this person retrievable." That fact stays in scene prose,
+## never in this table. Enforced by a test that scans this list for known
+## real names.
+##
+## CERTAINTY IS PER-SUBJECT, NOT UNIFORM, and an earlier version of this file
+## got the default backwards. Volume XI (WORLD-1888.md) and the Flower and
+## Dean Street ruling both establish that the Whitechapel casual poor
+## overwhelmingly PASS 42-D - "every one of them passes it on the first
+## reading" - meaning DISPUTED/reachable is the ordinary case here, not
+## DOCUMENTED/unavailable. Caught by re-reading the lore rather than trusting
+## the original assumption, before it became load-bearing in the mortuary
+## shed, where the contrast between a documented case and an unclaimed one
+## is the entire point of the room.
+const BACKGROUND_SUBJECTS := {
+	"a_carman_lodging_on_thrawl_street": Retrieval.Certainty.DISPUTED,
+	"a_seamstress_no_fixed_address": Retrieval.Certainty.DISPUTED,
+	"a_dock_labourer_hired_by_the_half_day": Retrieval.Certainty.DISPUTED,
+	"a_pedlar_three_names_in_two_years": Retrieval.Certainty.DISPUTED,
+	# A parish clerk's occasional exception - even here, documentation is not
+	# impossible, only unlikely. All-DISPUTED would be as false a picture as
+	# the original all-DOCUMENTED one.
+	"an_unnamed_infant_workhouse_register": Retrieval.Certainty.DOCUMENTED,
+	# From the mortuary shed: an unclaimed body, off the river, no name given.
+	# Seeded here as ordinary register content rather than created by any
+	# choice in that scene - the ruling requires that no unclaimed body be
+	# retrieved on screen, and this entry is never touched by player action,
+	# only ever observed, exactly like every other background row.
+	"an_unclaimed_body_found_off_the_river": Retrieval.Certainty.DISPUTED,
+}
+
+## Real surnames that must never appear as a Register subject_id, checked by
+## a test rather than trusted to review. Not exhaustive - a denominator this
+## small is meant to catch an accidental literal addition, not to be a
+## complete list of every real person in the setting.
+const FORBIDDEN_REAL_NAMES := ["eddowes", "nichols", "chapman", "stride", "kelly", "halloran-sze"]
 
 
 ## Build the full register for this playthrough: background entries plus
@@ -58,10 +88,11 @@ static func build(signed_findings: Array) -> Array:
 	var rows := []
 
 	for subject_id in BACKGROUND_SUBJECTS:
+		var certainty: Retrieval.Certainty = BACKGROUND_SUBJECTS[subject_id]
 		var r := Row.new()
 		r.subject_id = subject_id
-		r.certainty_name = Retrieval.CERTAINTY_NAME[Retrieval.Certainty.DOCUMENTED]
-		r.retrieval_available = Retrieval.liftable(Retrieval.Certainty.DOCUMENTED)
+		r.certainty_name = Retrieval.CERTAINTY_NAME[certainty]
+		r.retrieval_available = Retrieval.liftable(certainty)
 		rows.append(r)
 
 	for f in signed_findings:

@@ -90,9 +90,15 @@ placeholder text.
   measurement, not by tuning.
 - **The six protagonists have a thesis and a bill each, not a written arc.**
   Good enough for a select screen, not for a party that argues with itself.
-- **Two scenes of Act One are built: Goulston Street and Flower and Dean
-  Street.** The mortuary shed, Clerkenwell, and Carfax are designed in the
-  old canvas game and not yet ported.
+- **Three scenes of Act One are built: Goulston Street, Flower and Dean
+  Street, and the mortuary shed.** Clerkenwell and Carfax are designed in
+  the old canvas game and not yet ported. The mortuary shed is the one
+  place in the setting where an ethical rule and the game's own mechanics
+  enforce each other rather than the rule being a constraint layered on
+  top: the murdered women of Whitechapel are the most documented
+  working-class women in London, which under the Consistency Finding makes
+  them permanently unreachable — the game does not have to be told not to
+  make them a retrieval target, the physics has already refused.
 - **The register screen (`scenes/Register.tscn`) is built** — a flat
   parish-register view of every subject assessed, in the programme's own
   voice. Ruled by the lore thread as "state, not causation": a row may say
