@@ -24,6 +24,7 @@ const FACT_RECORD := "goulston_street_player_record"  ## What the player did wit
 
 func _ready() -> void:
 	super._ready()
+	apply_palette(EraPalette.london_1888())
 	graph = GoulstonBeats.beats()
 	goto("arrival")
 

@@ -70,17 +70,32 @@ To prove the suite can actually fail rather than take its word for it:
 
 Each breaks exactly one named check and exits 1. Verified 27 Aug 2026.
 
-## What is not yet true
+## What is true now, and what still is not
 
-Kept deliberately, so nothing here reads as further along than it is.
+Updated as of the visual/audio pass, so this stays a live claim rather than a
+stale one (CLAUDE.md rule 12: a stale warning is worse than none). Verify any
+line here yourself with `tools/shot.ps1` rather than trusting the prose.
 
-- **There is no playable game.** No scenes, no rendering, no input. The camp
-  tutorial, the eras, and every encounter are designed and unbuilt.
-- **Nothing is balanced.** Every number is a placeholder. `LOUD_ENOUGH_TO_BE_WRITTEN_DOWN`
-  is set to a value that happens to sit between Covered and Forward play; that
-  window is measured but not tuned.
-- **No story text is written**, and none will be until the open rulings in
-  `docs/DESIGN.md` land.
-- **The six protagonists have design intents, not written characters.**
-- The rival faction encounters are unwritten. Their voice systems belong to
-  the World Aflame card canon and will be taken from there, not invented here.
+**True:** Title → Select → Camp Iron Bell tutorial → Goulston Street is
+playable start to finish. Two eras have distinct visual identity (palette,
+vignette, grain, per `scripts/core/era_palette.gd`) and a procedural ambient
+bed (`scripts/core/ambience.gd` — the bible's own 60Hz mains-hum spec for
+Project 42, and a fog-noise bed for 1888 with no bible entry to answer to).
+The camp tutorial and the Goulston Street scene are both written, not
+placeholder text.
+
+**Not yet true:**
+- **Nothing is balanced.** Every combat number is a placeholder.
+  `LOUD_ENOUGH_TO_BE_WRITTEN_DOWN` sits between Covered and Forward play by
+  measurement, not by tuning.
+- **The six protagonists have a thesis and a bill each, not a written arc.**
+  Good enough for a select screen, not for a party that argues with itself.
+- **Nothing past Goulston Street in Act One is built** — Flower and Dean
+  Street, the mortuary shed, Clerkenwell, and Carfax are designed in the old
+  canvas game and not yet ported.
+- **No codex or reflection screen exists.** The Ledger and Archive systems
+  are fully wired into play but only report their state as debug text at the
+  end of a scene, not as a screen a player would recognise as part of a game.
+- The rival faction encounters (Werk Nachtigall, Hyakki Yakō retrieval teams
+  in the same era) are unwritten. Their voice systems belong to the World
+  Aflame card canon and will be taken from there, not invented here.

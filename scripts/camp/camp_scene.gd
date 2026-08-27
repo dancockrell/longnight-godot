@@ -10,6 +10,7 @@ extends BeatPresenter
 
 func _ready() -> void:
 	super._ready()
+	apply_palette(EraPalette.camp_iron_bell())
 	graph = TutorialBeats.beats(GameState.protagonist_id)
 	goto("arrival")
 

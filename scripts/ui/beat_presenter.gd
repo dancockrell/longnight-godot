@@ -10,13 +10,11 @@ extends Control
 ## A subclass supplies the graph and reacts to choices; this class owns the
 ## layout math that took three attempts to get right (see the DPI/layout
 ## postmortem in the Act 0 commit) so that fix is inherited rather than
-## re-discovered per era.
+## re-discovered per era, and now owns the per-era visual identity too
+## (docs/CONCEPT.md: "what nice means for this game" - two places should not
+## look like the same dark theme twice).
 
-const BG := Color("#0f1116")
-const PAPER := Color("#1b1e26")
-const INK := Color("#e8e2d4")
-const DIM := Color("#8b8778")
-const STAMP := Color("#c9a227")
+var palette: EraPalette.Palette = EraPalette.camp_iron_bell()
 
 var graph: Dictionary = {}
 var header: Label = null
@@ -24,15 +22,90 @@ var body: RichTextLabel = null
 var teaches: Label = null
 var buttons: VBoxContainer = null
 
+var _scroll_style: StyleBoxFlat = null
+var _rule: ColorRect = null
+var _grain: ColorRect = null
+
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	_build_background()
+	_build_chrome()
+
+
+## Subclasses call this in their own _ready(), before goto(), once the era
+## is known. Re-colours everything already built rather than requiring
+## build order to matter.
+func apply_palette(p: EraPalette.Palette) -> void:
+	palette = p
+	if is_instance_valid(_scroll_style):
+		_scroll_style.bg_color = p.paper
+		_scroll_style.border_color = p.rule
+	if is_instance_valid(header):
+		header.add_theme_color_override("font_color", p.stamp)
+	if is_instance_valid(_rule):
+		_rule.color = p.rule
+	if is_instance_valid(body):
+		body.add_theme_color_override("default_color", p.ink)
+	if is_instance_valid(teaches):
+		teaches.add_theme_color_override("font_color", p.dim)
+	if has_node("/root/Ambience"):
+		get_node("/root/Ambience").apply_palette(p)
+	queue_redraw()
+
+
+func _build_background() -> void:
 	var bg := ColorRect.new()
-	bg.color = BG
+	bg.color = palette.bg
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
-	_build_chrome()
+
+	# A soft radial vignette - the cheapest thing that stops a screen reading
+	# as "a colour fill with text on it." Built from a GradientTexture2D
+	# (engine-generated, no image asset) rather than shipped art, matching
+	# the project's no-external-assets discipline.
+	var vignette := TextureRect.new()
+	var grad := Gradient.new()
+	grad.set_color(0, Color(0, 0, 0, 0))
+	grad.set_color(1, Color(0, 0, 0, 0.55))
+	var tex := GradientTexture2D.new()
+	tex.gradient = grad
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(1.0, 1.0)
+	tex.width = 512
+	tex.height = 512
+	vignette.texture = tex
+	vignette.stretch_mode = TextureRect.STRETCH_SCALE
+	vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(vignette)
+
+	# Faint animated grain over the whole screen, same instinct as the
+	# canvas engine's 10_modern.js post-process pass (film grain over a
+	# duotone grade) - a static screen reads as a slide, a screen with one
+	# degree of constant motion reads as a place.
+	_grain = ColorRect.new()
+	_grain.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_grain.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_grain.color = Color(1, 1, 1, 1)
+	var sh := Shader.new()
+	sh.code = """
+shader_type canvas_item;
+uniform float amount = 0.03;
+float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
+void fragment(){
+	vec2 uv = FRAGCOORD.xy;
+	float n = hash(uv + vec2(TIME * 60.0, 0.0));
+	COLOR = vec4(vec3(n), amount);
+}
+"""
+	var mat := ShaderMaterial.new()
+	mat.shader = sh
+	mat.set_shader_parameter("amount", palette.noise_amount)
+	_grain.material = mat
+	add_child(_grain)
 
 
 func _build_chrome() -> void:
@@ -56,12 +129,14 @@ func _build_chrome() -> void:
 	outer.add_child(margin)
 
 	var scroll_panel := PanelContainer.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = PAPER
-	style.border_color = Color("#2b3038")
-	style.set_border_width_all(1)
-	style.set_content_margin_all(24)
-	scroll_panel.add_theme_stylebox_override("panel", style)
+	_scroll_style = StyleBoxFlat.new()
+	_scroll_style.bg_color = palette.paper
+	_scroll_style.border_color = palette.rule
+	_scroll_style.set_border_width_all(1)
+	_scroll_style.set_content_margin_all(24)
+	_scroll_style.shadow_color = Color(0, 0, 0, 0.35)
+	_scroll_style.shadow_size = 10
+	scroll_panel.add_theme_stylebox_override("panel", _scroll_style)
 	scroll_panel.clip_contents = true
 	margin.add_child(scroll_panel)
 
@@ -70,22 +145,24 @@ func _build_chrome() -> void:
 	scroll_panel.add_child(text_col)
 
 	header = Label.new()
-	header.add_theme_font_size_override("font_size", 17)
-	header.add_theme_color_override("font_color", STAMP)
+	header.add_theme_font_size_override("font_size", 19)
+	header.add_theme_color_override("font_color", palette.stamp)
+	header.add_theme_constant_override("outline_size", 0)
 	header.autowrap_mode = TextServer.AUTOWRAP_WORD
 	text_col.add_child(header)
 
-	var rule := ColorRect.new()
-	rule.color = Color("#2b3038")
-	rule.custom_minimum_size = Vector2(0, 1)
-	text_col.add_child(rule)
+	_rule = ColorRect.new()
+	_rule.color = palette.rule
+	_rule.custom_minimum_size = Vector2(0, 1)
+	text_col.add_child(_rule)
 
 	body = RichTextLabel.new()
 	body.bbcode_enabled = true
 	body.scroll_active = true
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body.add_theme_font_size_override("normal_font_size", 15)
-	body.add_theme_color_override("default_color", INK)
+	body.add_theme_color_override("default_color", palette.ink)
+	body.add_theme_constant_override("line_separation", 4)
 	text_col.add_child(body)
 
 	var footer_margin := MarginContainer.new()
@@ -106,7 +183,7 @@ func _build_chrome() -> void:
 
 	teaches = Label.new()
 	teaches.add_theme_font_size_override("font_size", 11)
-	teaches.add_theme_color_override("font_color", DIM)
+	teaches.add_theme_color_override("font_color", palette.dim)
 	footer.add_child(teaches)
 
 
@@ -142,5 +219,17 @@ func make_button(label: String, on_press: Callable) -> Button:
 	b.text = label
 	b.custom_minimum_size = Vector2(0, 38)
 	b.add_theme_font_size_override("font_size", 14)
+	var style := StyleBoxFlat.new()
+	style.bg_color = palette.paper.lightened(0.06)
+	style.border_color = palette.stamp
+	style.set_border_width_all(1)
+	style.set_content_margin_all(8)
+	style.set_corner_radius_all(2)
+	b.add_theme_stylebox_override("normal", style)
+	var hover := style.duplicate()
+	hover.bg_color = palette.stamp.darkened(0.6)
+	b.add_theme_stylebox_override("hover", hover)
+	b.add_theme_color_override("font_color", palette.ink)
+	b.add_theme_color_override("font_hover_color", palette.stamp)
 	b.pressed.connect(on_press)
 	return b
