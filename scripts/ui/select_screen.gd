@@ -83,7 +83,23 @@ func _build() -> void:
 	_detail.add_theme_font_size_override("normal_font_size", 15)
 	split.add_child(_detail)
 
+	var confirm := Button.new()
+	confirm.text = "REPORT FOR ORIENTATION"
+	confirm.custom_minimum_size = Vector2(0, 42)
+	confirm.add_theme_font_size_override("font_size", 15)
+	confirm.pressed.connect(_confirm)
+	col.add_child(confirm)
+
 	_show(String(roster[0]["id"]))
+
+
+func _confirm() -> void:
+	if not GameState.choose(_selected):
+		# GameState.choose already named the bad id. Refuse to start rather
+		# than silently beginning somebody else's story.
+		return
+	chosen.emit(_selected)
+	get_tree().change_scene_to_file("res://scenes/Camp.tscn")
 
 
 func _person_button(entry: Dictionary) -> Button:

@@ -36,6 +36,7 @@ func _init() -> void:
 	test_archive()
 	test_relational()
 	test_retrieval()
+	test_tutorial_graph()
 	_summary()
 	quit(1 if _fail > 0 else 0)
 
@@ -456,6 +457,79 @@ func test_retrieval() -> void:
 	})
 	_ok("agreement is distinguishable from contest",
 		not Retrieval.is_contested(agreed), "both refuse, so not contested")
+
+
+# -------------------------------------------------------- tutorial graph ---
+
+func test_tutorial_graph() -> void:
+	print("\n[act 0 - tutorial graph]")
+
+	# Run it for EVERY protagonist, not one. The beats interpolate a practice
+	# subject chosen relative to who the player picked, so checking a single
+	# protagonist would test the chooser where the wrong answer is unavailable.
+	var protagonists := Roster.ids()
+	_ok("checking the graph for every protagonist", protagonists.size() == 6,
+		"%d protagonists" % protagonists.size())
+
+	var total_dangling := 0
+	var total_orphans := 0
+	var subject_is_self := 0
+	var graphs_checked := 0
+
+	for pid in protagonists:
+		var g := TutorialBeats.beats(pid)
+		graphs_checked += 1
+
+		# The practice subject must never be the player. Signing the form that
+		# retrieved yourself is a different scene and not this one.
+		var subject := TutorialBeats.practice_subject(pid)
+		if String(subject.get("id", "")) == pid:
+			subject_is_self += 1
+
+		# Every "next" and every choice target must exist. A beat pointing at
+		# nothing ends the tutorial silently, which reads as finishing it.
+		for id in g:
+			var beat: Dictionary = g[id]
+			var nxt := String(beat.get("next", ""))
+			if not nxt.is_empty() and not g.has(nxt):
+				total_dangling += 1
+			for c in beat.get("choices", []):
+				if not g.has(String(c["next"])):
+					total_dangling += 1
+
+		# No orphans: every authored beat must be reachable from the entry.
+		var reachable := TutorialBeats.reachable_from("arrival", g)
+		if _sabotage == "orphan_a_beat":
+			reachable = PackedStringArray(["arrival"])
+		for id in g:
+			if not reachable.has(String(id)):
+				total_orphans += 1
+
+	_ok("every graph was actually built", graphs_checked == protagonists.size(),
+		"%d of %d graphs" % [graphs_checked, protagonists.size()])
+	_ok("no beat points at a beat that does not exist", total_dangling == 0,
+		"%d dangling across %d graphs" % [total_dangling, graphs_checked])
+	_ok("every authored beat is reachable from the entry", total_orphans == 0,
+		"%d orphaned across %d graphs" % [total_orphans, graphs_checked])
+	_ok("the practice subject is never the player", subject_is_self == 0,
+		"checked all %d protagonists" % protagonists.size())
+
+	# Exactly one terminal beat, and it is the departure. More than one means
+	# a branch quietly stops; none means it cannot finish.
+	var g0 := TutorialBeats.beats("moreau")
+	var terminals := PackedStringArray()
+	for id in g0:
+		var beat: Dictionary = g0[id]
+		if String(beat.get("next", "")).is_empty() and beat.get("choices", []).is_empty():
+			terminals.append(String(id))
+	_ok("exactly one terminal beat", terminals.size() == 1,
+		"%d terminal(s): %s" % [terminals.size(), str(terminals)])
+
+	# The refusal branch must rejoin. A player who asks what happens if they
+	# write NO has to end up back at the form, because the loop is closed.
+	_ok("the refusal branch rejoins the form",
+		g0.has("refuse") and String(g0["refuse"]["next"]) == "the_form_again",
+		"refuse -> the_form_again")
 
 
 # --------------------------------------------------------------- summary ---
