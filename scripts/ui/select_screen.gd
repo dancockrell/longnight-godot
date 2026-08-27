@@ -213,6 +213,13 @@ func _show(id: String) -> void:
 	lines.append("[i]“%s”[/i]" % String(e["thesis"]))
 	lines.append("")
 	lines.append("[color=#%s]%s[/color]" % [_palette.dim.to_html(false), String(e["bill"])])
+
+	if e.has("question_position"):
+		lines.append("")
+		lines.append("[color=#%s]On the question — %s[/color]" % [
+			tint.to_html(false), String(e.get("question_label", ""))])
+		lines.append("[color=#%s]%s[/color]" % [_palette.dim.to_html(false), String(e.get("question_note", ""))])
+
 	_detail.text = "\n".join(lines)
 
 

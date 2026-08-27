@@ -89,6 +89,16 @@ func test_roster() -> void:
 	_ok("every protagonist carries a bill", missing.is_empty(),
 		"%d of %d have one" % [n - missing.size(), n])
 
+	var pos_dupes := Roster.duplicate_question_positions()
+	if _sabotage == "collide_question_positions":
+		pos_dupes = [4]
+	_ok("no two protagonists share a Volume XVI position", pos_dupes.is_empty(),
+		"checked %d protagonists, %d collisions" % [n, pos_dupes.size()])
+
+	var missing_pos := Roster.missing_question_position()
+	_ok("every protagonist holds a Volume XVI position", missing_pos.is_empty(),
+		"%d of %d missing" % [missing_pos.size(), n])
+
 	var pillars_used := {}
 	for p in Roster.PROTAGONISTS:
 		pillars_used[p["pillar"]] = true
