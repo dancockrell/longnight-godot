@@ -32,6 +32,7 @@ func _init() -> void:
 	test_exposure_cannot_be_free()
 	test_battle_resolves()
 	test_loud_wins_cost_more()
+	test_ledger()
 	_summary()
 	quit(1 if _fail > 0 else 0)
 
@@ -211,12 +212,104 @@ func test_loud_wins_cost_more() -> void:
 		"loud=%d vs quiet=%d" % [loud_e.value, quiet_e.value])
 
 
+# ---------------------------------------------------------------- ledger ---
+
+func test_ledger() -> void:
+	print("\n[the ledger - what survives]")
+
+	# The thesis, asserted directly: witnessing is not remembering. If this
+	# check ever passes trivially the whole philosophy of the game is
+	# decoration, so it runs against a populated ledger and counts.
+	var l := Ledger.new()
+	l.witness("seen_only", 1888)
+	l.witness("chalked", 1888)
+	l.witness("filed", 1888)
+	l.witness("photographed", 1888)
+	l.witness("buried", 1888)
+
+	var n := l.witnessed_count()
+	_ok("ledger populated", n == 5, "%d entries witnessed" % n)
+	if n != 5:
+		_skipped("all remaining ledger checks", "ledger did not populate, nothing to check against")
+		return
+
+	l.inscribe("chalked", Ledger.Medium.CHALK)
+	l.inscribe("filed", Ledger.Medium.FILED_PAPER)
+	l.inscribe("photographed", Ledger.Medium.PHOTOGRAPH)
+	l.inscribe("buried", Ledger.Medium.BURIED_CACHE)
+
+	var seen_survives := l.survives("seen_only")
+	# This sabotage was written as `seen_survives = false`, which is the value
+	# it already had - so it changed nothing, the check passed, and the run
+	# reported a caught mutation it had not caught. It has to assert the
+	# OPPOSITE of the truth to be a sabotage at all: pretend that merely
+	# witnessing something is enough to make it survive.
+	if _sabotage == "memory_is_enough":
+		seen_survives = true
+	_ok("a thing only witnessed does NOT survive", not seen_survives,
+		l.why_lost("seen_only"))
+
+	# The chooser test: run it where the wrong answer is available. "Durable
+	# media survive" means nothing unless a fragile one is present to lose.
+	_ok("filed paper outlives its author", l.survives("filed"), "vs 4 other media")
+	# This was written as `not l.survives("chalk") or true` against an id that
+	# does not exist - a tautology that could never fail, checking nothing, in
+	# the suite whose entire purpose is catching exactly that. Rewritten to
+	# compare the fragile medium against the durable ones actually present.
+	_ok("chalk does not outlive its author, unlike the durable media",
+		not l.survives("chalked") and l.survives("filed") and l.survives("photographed"),
+		"1 fragile vs 2 durable, all present in the same ledger")
+
+	# Erasure. Modelled on a real and specific failure of the record: a thing
+	# written where it could be washed off, washed off on an official order
+	# before it could be photographed.
+	l.suppress("chalked", "an official order")
+	l.suppress("filed", "the institution that held it")
+	l.suppress("buried", "the same order")
+	_ok("chalk does not survive suppression", not l.survives("chalked"),
+		l.why_lost("chalked"))
+	_ok("an institution can destroy its own records", not l.survives("filed"),
+		l.why_lost("filed"))
+	_ok("a buried cache survives suppression", l.why_lost("buried") == "buried and never found",
+		"suppression did not reach it; recovery is the open question")
+
+	# Historically honest: burial is not a guarantee. Two of the three Oneg
+	# Shabbat caches were recovered and the third never was, so the system
+	# must be able to represent a record that was made correctly and still
+	# lost. A mechanic that always rewards the right action is not a mechanic.
+	_ok("a buried cache is lost until it is found", not l.survives("buried"),
+		"burial alone is not survival")
+	l.recover("buried")
+	_ok("a recovered cache survives", l.survives("buried"), "recovered")
+
+	# The denominator, and the honest reporting of failure.
+	var survived := l.surviving_ids().size()
+	var lost := l.lost_ids().size()
+	_ok("every entry is accounted for as survived or lost", survived + lost == n,
+		"%d survived + %d lost = %d of %d witnessed" % [survived, lost, survived + lost, n])
+	_ok("the ledger can report losses, not only successes", lost > 0,
+		"%d lost, each with a stated reason" % lost)
+
+
 # --------------------------------------------------------------- summary ---
 
 func _summary() -> void:
 	print("\n=== %d checks: %d passed, %d failed, %d not checked ===" % [_checks, _pass, _fail, _skip])
 	if _checks == 0:
 		print("!! ZERO CHECKS RAN. The harness is broken, not the code.")
+		_fail += 1
+		return
+
+	# A sabotage that breaks nothing is not evidence that the code is sound;
+	# it is evidence that the sabotage stopped matching. Without this guard the
+	# run prints "all passed" and reads exactly like proof. Caught here after
+	# memory_is_enough silently did nothing for a full run.
+	if not _sabotage.is_empty() and _fail == 0:
+		print("!! SABOTAGE '%s' BROKE NOTHING." % _sabotage)
+		print("   Expected at least one FAIL. Either the sabotage no longer")
+		print("   matches the code it was written against, or the check it")
+		print("   targets is not actually checking anything. This is a hard")
+		print("   failure - it is not a passing run.")
 		_fail += 1
 		return
 	if _fail == 0 and _skip > 0:
