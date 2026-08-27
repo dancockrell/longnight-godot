@@ -34,6 +34,8 @@ func _init() -> void:
 	test_loud_wins_cost_more()
 	test_ledger()
 	test_archive()
+	test_relational()
+	test_retrieval()
 	_summary()
 	quit(1 if _fail > 0 else 0)
 
@@ -346,6 +348,114 @@ func test_archive() -> void:
 	_ok("no real person named in the archive appears on the playable roster",
 		leaked.is_empty(),
 		"checked %d real names against %d protagonists" % [6, Roster.PROTAGONISTS.size()])
+
+
+# ------------------------------------------------------------ relational ---
+
+func test_relational() -> void:
+	print("\n[relational facts - no view from nowhere]")
+	var r := Relational.new()
+
+	# Three states, not two. "Holds false" and "has no state about it" are
+	# different things, and collapsing them is where the lie would enter.
+	r.hold("the_wall_said_x", "halse_analogue", true)
+	r.hold("the_wall_said_x", "long_analogue", false)
+	# A third observer deliberately holds nothing.
+	var n := r.fact_count()
+	_ok("store populated", n > 0, "%d facts" % n)
+
+	_ok("an observer who holds it true reads as such",
+		r.stance_of("the_wall_said_x", "halse_analogue") == Relational.Stance.HOLDS_TRUE, "")
+	_ok("an observer who holds it false is distinct from one who holds nothing",
+		r.stance_of("the_wall_said_x", "long_analogue") == Relational.Stance.HOLDS_FALSE
+		and r.stance_of("the_wall_said_x", "never_saw_it") == Relational.Stance.NO_STATE,
+		"3 states present: true, false, no-state")
+
+	# The disagreement is content, not error. Run where the wrong answer is
+	# available: an undisputed fact is in the same store.
+	r.hold("apron_was_found", "halse_analogue", true)
+	r.hold("apron_was_found", "long_analogue", true)
+	var disputed := r.disputed()
+	if _sabotage == "reconcile_observers":
+		disputed = PackedStringArray()
+	_ok("contradictory accounts are surfaced, not reconciled",
+		disputed.size() == 1 and disputed[0] == "the_wall_said_x",
+		"%d disputed of %d facts, with an undisputed one present to lose" % [disputed.size(), r.fact_count()])
+
+	# Anchoring: a person is held exactly like a record. Attenuation is this
+	# number falling, which is Phase's documented cost rather than a metaphor.
+	r.hold("cpl_hune", "moreau", true)
+	r.hold("cpl_hune", "doig", true)
+	r.hold("cpl_hune", "ferrer", true)
+	_ok("a person's anchoring is the count of observers holding them",
+		r.anchoring("cpl_hune") == 3, "3 observers")
+	r.release("cpl_hune", "doig")
+	r.release("cpl_hune", "ferrer")
+	_ok("attenuation is anchoring falling", r.anchoring("cpl_hune") == 1, "1 observer left")
+	_ok("still a fact for somebody", r.is_fact_for_anyone("cpl_hune"), "")
+	r.release("cpl_hune", "moreau")
+	_ok("real to nobody when the last observer releases",
+		not r.is_fact_for_anyone("cpl_hune") and r.anchoring("cpl_hune") == 0,
+		"anchoring 0")
+
+
+# ------------------------------------------------------------- retrieval ---
+
+func test_retrieval() -> void:
+	print("\n[the consistency finding]")
+
+	# The constraint, asserted across the whole enum rather than at one point,
+	# so the denominator is the full range of record states.
+	var all := [Retrieval.Certainty.UNRECORDED, Retrieval.Certainty.DISPUTED,
+		Retrieval.Certainty.ATTESTED, Retrieval.Certainty.DOCUMENTED]
+	var liftable := 0
+	for c in all:
+		if Retrieval.liftable(c):
+			liftable += 1
+	_ok("only some record states permit a retrieval", liftable > 0 and liftable < all.size(),
+		"%d of %d certainty levels are liftable" % [liftable, all.size()])
+
+	var doc := Retrieval.assess("subject_a", Retrieval.Certainty.DOCUMENTED, "NW")
+	var unrec := Retrieval.assess("subject_b", Retrieval.Certainty.UNRECORDED, "NW")
+	_ok("a person history is certain about cannot be taken", not doc.consistent,
+		Retrieval.CERTAINTY_NAME[doc.certainty])
+	_ok("a person history loses can be", unrec.consistent,
+		Retrieval.CERTAINTY_NAME[unrec.certainty])
+
+	# The programme produces paperwork, not decisions.
+	_ok("the finding is a form and says who initialled it",
+		doc.form_line.contains("Is the subject's absence consistent") and doc.form_line.contains("NW"),
+		"form text present")
+
+	# The ambiguity must stay open. The system computes eligibility and never
+	# supplies a motive - if it ever gains a "reason refused" field beyond the
+	# record's own certainty, it has answered the question the game exists to
+	# keep open. Asserted structurally rather than trusted to a comment.
+	var has_motive_field := false
+	for prop in doc.get_property_list():
+		var pname := String(prop["name"]).to_lower()
+		if pname.contains("motive") or pname.contains("reason") or pname.contains("because"):
+			has_motive_field = true
+	if _sabotage == "explain_the_refusal":
+		has_motive_field = true
+	_ok("the finding never states a motive", not has_motive_field,
+		"checked %d properties" % doc.get_property_list().size())
+
+	# RQM: two observers reading two archives can disagree about the same
+	# person and both be consistent. The programme has no procedure for this.
+	var contested := Retrieval.assess_for_observer("subject_c", {
+		"camp_iron_bell": Retrieval.Certainty.DISPUTED,
+		"a_rival_team": Retrieval.Certainty.DOCUMENTED,
+	})
+	_ok("two observers can reach opposite findings about one person",
+		Retrieval.is_contested(contested), "2 observers, opposite findings")
+
+	var agreed := Retrieval.assess_for_observer("subject_d", {
+		"camp_iron_bell": Retrieval.Certainty.DOCUMENTED,
+		"a_rival_team": Retrieval.Certainty.DOCUMENTED,
+	})
+	_ok("agreement is distinguishable from contest",
+		not Retrieval.is_contested(agreed), "both refuse, so not contested")
 
 
 # --------------------------------------------------------------- summary ---

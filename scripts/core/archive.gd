@@ -109,16 +109,21 @@ static func build_default() -> Archive:
 		"Goulston Street, 30 September 1888",
 		"""A police constable found a piece of a woman's apron in a stairwell doorway in Goulston Street. It had been cut from the clothing of Catherine Eddowes, murdered a few hours earlier in Mitre Square. Chalked on the wall above it was a single line, whose exact wording and spelling were transcribed differently by the men who saw it and were never reconciled.
 
-Inspector Daniel Halse of the City of London Police wanted the writing photographed before anything was done to it. Superintendent Thomas Arnold of the Metropolitan Police wanted it erased. Arnold's reason was not indifference: Goulston Street ran into a Jewish quarter, the market would open at daylight, and he judged that a line of writing about Jews, found beside a murdered woman's clothing, would set off attacks on the people living there.
+Detective Constable Daniel Halse of the City of London Police wanted the writing photographed before anything was done to it, and sent another officer to fetch instructions from his own department to that effect. Superintendent Thomas Arnold of the Metropolitan Police wanted it erased. Arnold's reason was not indifference: Goulston Street ran into a Jewish quarter, the market would open at daylight, and he judged that a line of writing about Jews, found beside a murdered woman's clothing, would set off attacks on the people living there.
 
 Sir Charles Warren, Commissioner of the Metropolitan Police, arrived a little after five in the morning. The wall was on Metropolitan ground. He sided with Arnold, and the writing was sponged off before it was light.
 
 There is no photograph. No handwriting could ever be examined. Both things are true at once and neither cancels the other: the erasure had a real reason, and it destroyed the only copy of the evidence. That is the whole of what this game is about, and it happened in one hour, to one wall, over one line of chalk.""",
-		PackedStringArray(["https://en.wikipedia.org/wiki/Goulston_Street_graffito"]),
+		PackedStringArray([
+			"https://www.casebook.org/official_documents/inquests/inquest_eddowes.html",
+			"https://wiki.casebook.org/daniel_halse.html",
+		]),
 		true,
 		PackedStringArray([
 			"The line's exact wording is disputed between the surviving transcriptions. Do not quote it as settled, and consider not quoting it at all - the lore ruling is that the story is the erasure, not the message.",
-			"Confirm Halse's and Arnold's ranks against a second independent source before this ships.",
+			"RESOLVED 27 Aug 2026: Halse was a Detective Constable, not an Inspector. The lore master caught this by applying my own verify-the-source rule back at me, and was right. The first draft had it wrong because it came off a summary rather than the testimony.",
+			"Arnold's rank still wants a third check. He is consistently given as Superintendent, Metropolitan Police, H Division, but I have not read that off a primary document.",
+			"Wikipedia is a finding aid and is no longer cited here. Sources are now the inquest testimony and the officer record it supports.",
 		])
 	)
 
