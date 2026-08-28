@@ -37,14 +37,18 @@ func _advance(next_id: String, action: String) -> void:
 	match action:
 		"help":
 			# Before: DISPUTED, liftable (see Retrieval.LIFTABLE_AT_OR_BELOW).
-			# The investigator's own record-keeping is what moves this -
-			# nothing the player says makes the point, the mechanic does.
+			# Stated plainly now rather than hidden - overridden by Dan
+			# directly, 27 Aug 2026: "we are telling the truth. don't lie
+			# and don't hide." The cause is a fact, not a verdict; nothing
+			# here tells the player how to feel about it.
 			GameState.facts.hold(SUBJECT_ID, "flower_dean_parish_ledger", true)
-			var finding_after := Retrieval.assess(SUBJECT_ID, Retrieval.Certainty.DOCUMENTED, "")
+			var finding_after := Retrieval.assess(SUBJECT_ID, Retrieval.Certainty.DOCUMENTED, "",
+				"Entered into the parish ledger, Flower and Dean Street, 1888.")
 			GameState.sign_finding(finding_after)
 		"hinder":
 			GameState.facts.hold(SUBJECT_ID, "flower_dean_parish_ledger", false)
-			var finding_still := Retrieval.assess(SUBJECT_ID, Retrieval.Certainty.DISPUTED, "")
+			var finding_still := Retrieval.assess(SUBJECT_ID, Retrieval.Certainty.DISPUTED, "",
+				"Not entered into the parish ledger. The name given did not survive checking.")
 			GameState.sign_finding(finding_still)
 		"take":
 			GameState.ledger.witness(CELLAR_FACT, 1888)

@@ -702,23 +702,18 @@ func test_flower_dean_graph() -> void:
 		_ok("%s leads to distinct outcomes" % choice_beat_id, destinations.size() == beat["choices"].size(),
 			"%d distinct of %d choices" % [destinations.size(), beat["choices"].size()])
 
-	# The two things this scene must never say out loud must never appear as
-	# literal text in any beat's lines. This is a blunt lexical check, not a
-	# semantic one, but it catches the most likely accidental regression: a
-	# future edit adding an explanatory line that states the point instead
-	# of letting the mechanic make it.
-	var forbidden := ["programme benefits", "could retrieve", "nobody has suggested retrieving"]
-	var violations := PackedStringArray()
-	for id in g:
-		var beat: Dictionary = g[id]
-		var text := " ".join(PackedStringArray(beat.get("lines", []))).to_lower()
-		for phrase in forbidden:
-			if text.contains(phrase):
-				violations.append("%s contains '%s'" % [id, phrase])
-	if _sabotage == "state_the_unspoken_thing":
-		violations.append("codex_note contains 'programme benefits' (forced)")
-	_ok("neither unspoken conclusion is stated as dialogue anywhere in the scene",
-		violations.is_empty(), "checked %d beats against %d forbidden phrases" % [g.size(), forbidden.size()])
+	# Overridden by Dan directly, 27 Aug 2026: this scene used to ban stating
+	# its own theme anywhere in the text, on the theory that the player must
+	# assemble it unaided or the game has failed. "We are telling the truth.
+	# don't lie and don't hide... let the truth or not truth happen." The
+	# codex_note beat now says the thing plainly, once, without moralising -
+	# asserted here instead of banned.
+	var codex_text := " ".join(PackedStringArray(g["codex_note"]["lines"])).to_lower()
+	if _sabotage == "hide_the_theme_again":
+		codex_text = ""
+	_ok("the scene states its own theme plainly, once, in the codex beat",
+		codex_text.contains("unreachable") and codex_text.contains("same direction"),
+		"codex_note text checked directly")
 
 
 func test_flower_dean_investigator_choice() -> void:
@@ -750,11 +745,16 @@ func test_flower_dean_investigator_choice() -> void:
 # ------------------------------------------------------------- register ---
 
 func test_register() -> void:
-	print("\n[the register - state, not causation]")
+	print("\n[the register - honest state, not a scoreboard]")
 
 	# A finding the "player" caused, mirroring what flower_dean_scene.gd's
-	# help branch actually produces.
-	var caused := Retrieval.assess("player_touched_subject", Retrieval.Certainty.DOCUMENTED, "")
+	# help branch actually produces - now WITH a stated cause. Overridden by
+	# Dan directly, 27 Aug 2026: the register used to ban stating why a
+	# record changed; it no longer does. What is kept is the other half of
+	# the original design, which was never about hiding - background rows
+	# the player never touched still appear in the same list.
+	var caused := Retrieval.assess("player_touched_subject", Retrieval.Certainty.DOCUMENTED, "",
+		"Entered into the parish ledger, Flower and Dean Street, 1888.")
 	var rows := Register.build([caused])
 
 	var n := rows.size()
@@ -780,31 +780,47 @@ func test_register() -> void:
 			background_count, caused_count, background_count + caused_count,
 			Register.BACKGROUND_SUBJECTS.size() + 1])
 
-	# No field anywhere distinguishes a caused row from a background one -
-	# checked structurally, not just by eye. Every Row must expose the exact
-	# same property set regardless of origin.
+	# Every Row exposes the same SCHEMA regardless of origin (subject,
+	# certainty, availability, cause) - that is still true and still worth
+	# asserting, because a genuinely different shape would mean the register
+	# is quietly two different systems wearing one UI. The VALUES differ
+	# now, honestly: a caused row states its cause, a background row has
+	# none to state, because nothing caused it. That difference is the
+	# correction, not a bug.
 	var prop_names := func(r): return (r.get_property_list() as Array).map(func(p): return String(p["name"]))
 	var shapes_differ := false
 	var first_shape: Array = prop_names.call(rows[0])
 	for r in rows:
 		if prop_names.call(r) != first_shape:
 			shapes_differ = true
-	_ok("every row has an identical shape regardless of origin", not shapes_differ,
+	_ok("every row has the same schema regardless of origin", not shapes_differ,
 		"checked %d rows" % n)
 
-	# The lexical test, extended from the beats to the register: the exact
-	# four words the ruling forbids must never appear in any rendered line.
-	var forbidden_words = ["because", " now", "no longer", "since"]
-	var violations := 0
+	# The caused row must actually state what happened. Silence here was
+	# the thing overridden - a register that CAN state a cause and simply
+	# never does would just be the old design with an unused field bolted on.
+	var caused_row = null
 	for r in rows:
-		var line: String = r.to_line().to_lower()
-		for w in forbidden_words:
-			if line.contains(w):
-				violations += 1
-	if _sabotage == "register_states_causation":
-		violations += 1
-	_ok("no rendered row uses a causation word", violations == 0,
-		"checked %d rows against %d forbidden words" % [n, forbidden_words.size()])
+		if r.subject_id == "player_touched_subject":
+			caused_row = r
+	var states_cause: bool = false
+	if caused_row != null:
+		states_cause = not caused_row.cause.is_empty() and caused_row.to_line().contains(caused_row.cause)
+	if _sabotage == "register_hides_cause_again":
+		states_cause = false
+	_ok("a caused row states plainly what happened", states_cause,
+		"cause='%s'" % (caused_row.cause if caused_row != null else "<row not found>"))
+
+	# And a background row must have nothing to state - there was no event,
+	# so there is no fact to report. A background row inventing a cause
+	# would be lying, not telling the truth.
+	var background_row = null
+	for r in rows:
+		if r.subject_id != "player_touched_subject":
+			background_row = r
+	var background_silent: bool = background_row != null and background_row.cause.is_empty()
+	_ok("a background row states no cause, because none exists", background_silent,
+		"checked one background row directly")
 
 	# Sorted by subject id, not by insertion order - insertion order would
 	# put the caused row in a fixed, predictable position (last), which is

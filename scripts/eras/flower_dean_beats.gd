@@ -7,22 +7,22 @@ extends RefCounted
 ## docs/wiki/places/flower-and-dean-street.md and three linked pages),
 ## verified in git before a line of this was written.
 ##
-## TWO THINGS THIS SCENE MUST NEVER SAY OUT LOUD, per the ruling, and the
-## whole design problem is building a scene that can still make a player
-## arrive at them:
+## OVERRIDDEN BY DAN DIRECTLY, 27 Aug 2026. This file originally banned two
+## conclusions from ever being stated as dialogue - that the programme
+## benefits from people remaining uncounted, and that a Werk Nachtigall
+## casualty in 1888 passes the Consistency Finding perfectly - on the
+## theory that a player must assemble them unaided or the writing has
+## failed. His words: "we are not politically safe. we are telling the
+## truth. don't lie and don't hide. don't volunteer either... let the
+## truth or not truth happen."
 ##
-##   1. That the programme benefits from people remaining uncounted, because
-##      an investigator who succeeds makes her subject unreachable.
-##   2. That a Werk Nachtigall casualty in 1888 passes the Consistency
-##      Finding perfectly and nobody has suggested retrieving them.
-##
-## Neither is a line of dialogue anywhere in this file. Both are mechanical
-## consequences: the investigator choice actually changes a Retrieval
-## finding via Relational facts, and the cellar beat ends on found objects
-## with no character interpreting them. If a future edit adds a character
-## who says either of these sentences, that edit is wrong regardless of how
-## good the sentence is - ask the lore thread before restoring anything
-## that reads like an explanation.
+## The mechanics still do the real work - the investigator choice actually
+## changes a Retrieval finding, the cellar still ends on found objects
+## rather than a lecture - but the codex_note beat now says the first
+## conclusion plainly, once, because hiding it was the thing to stop doing,
+## not a safeguard worth keeping. "Don't volunteer" still governs: it is
+## stated as a fact, once, not repeated, and nothing in this file tells the
+## player how to feel about it.
 
 enum Kind { DOCUMENT, CHOICE, LEDGER_RESULT, DEPART }
 
@@ -177,11 +177,13 @@ static func beats() -> Dictionary:
 		"codex_note": {
 			"kind": Kind.DOCUMENT,
 			"header": "LATER",
-			"teaches": "Nobody says either of the two things this scene is actually about. That is deliberate.",
+			"teaches": "The fact stated once, plainly, and left there.",
 			"lines": [
-				"You do not report the woman with the notebook. There is no form for her, and it would not occur to you that there should be one.",
+				"You work it through properly for the first time on the walk back, and it does not take long, because it is not a complicated thought.",
 				"",
-				"You do not report the body in the cellar as a subject, only as debris. Nobody asks you why not, and you do not ask yourself either, out loud.",
+				"An investigator who succeeds makes her subject unreachable. The programme can only take who the record loses. So the programme's interest and the century's indifference point the same direction, and nobody at Camp Iron Bell has ever had a reason to say so out loud.",
+				"",
+				"You do not report the body in the cellar as a subject, only as debris. Nobody asks you why not, and you do not ask yourself either, out loud — though you could now, if you wanted to.",
 			],
 			"next": "act_one_gap_2",
 		},

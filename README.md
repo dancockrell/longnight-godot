@@ -101,12 +101,14 @@ placeholder text.
   make them a retrieval target, the physics has already refused.
 - **The register screen (`scenes/Register.tscn`) is built** — a flat
   parish-register view of every subject assessed, in the programme's own
-  voice. Ruled by the lore thread as "state, not causation": a row may say
-  what is true now, never what made it true or who changed it, and
-  background entries the player never touched sit in the same list, in the
-  same shape, as the ones they did — a field that only appears where the
-  player acted would be a scoreboard. Both the causation-word ban and the
-  no-scoreboard rule are enforced as tests, not just followed by convention.
+  voice. A row states plainly what a subject's status is *and*, when
+  something genuinely caused it, what that was — one flat factual clause,
+  never a value judgment. (Overridden by Dan directly, 27 Aug 2026, from an
+  earlier "state, not causation" design that hid the cause entirely — see
+  `docs/CONCEPT.md`.) Background entries the player never touched still sit
+  in the same list, in the same shape, as the ones they did — not
+  concealment, an honest population; a register with only the player's own
+  rows would be a scoreboard pretending to be a world.
 - **Werk Nachtigall's presence in 1888 is built, Hyakki Yakō's is not.**
   Per `world-aflame-godot/docs/wiki/` (ruled by the Chrono fork of the lore
   thread), neither faction gets a rival retrieval team — only Project 42

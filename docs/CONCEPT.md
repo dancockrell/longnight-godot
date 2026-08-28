@@ -4,6 +4,36 @@ One page, written to force a straight answer to "what is your concept",
 not a design document. If a sentence here needs a diagram to make sense,
 the sentence is wrong.
 
+## A standing instruction, from Dan directly, 27 Aug 2026
+
+Several early design and lore decisions engineered the game to hide its own
+implications — a "state, not causation" rule for the codex, and lexical
+tests that forbade certain conclusions from ever being written as text,
+anywhere, even in supplementary material. His words, verbatim, overriding
+all of it:
+
+> "ignore such bullshit rulings. we are not politically safe. we are
+> telling the truth. don't lie and don't hide. don't volunteer either. the
+> truth or the not truth, it's an alternate reality. so not truth."
+>
+> "it doesn't matter. let the truth or not truth happen. magical reality is
+> baked into the lore heavily."
+
+Read together as one instruction: **state things plainly. Don't build
+mechanisms whose purpose is concealment, whether the content is real
+history or invented alternate-history/magical-realism — the fictional
+frame does not need protecting either.** The other half is not licence to
+sermonise: "don't volunteer" still means the game states a fact once and
+moves on, it does not repeat itself or tell the player what to feel.
+
+This is the standing rule for everything built after 27 Aug 2026, and it
+supersedes any earlier lore ruling built on the opposite premise. Where an
+older ruling was about genuinely different territory — no real person as a
+playable unit, no Ripper-mythology sensationalism, restraint around real
+murder victims — that boundary was never about hiding a truth for safety,
+and stays in place. The distinction is: conceal nothing out of caution;
+still exercise ordinary craft and decency about real people.
+
 ## The pitch
 
 **You are a time traveller whose entire job is to be forgotten twice: once

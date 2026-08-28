@@ -61,6 +61,14 @@ class Finding extends RefCounted:
 	## register is the horror.
 	var form_line: String = ""
 	var initialled_by: String = ""
+	## What specific event in the story produced this record - "entered into
+	## the parish ledger", not why the programme's criteria happen to select
+	## these people. That second question is the permanent, deliberate
+	## ambiguity above and this field never answers it. Empty when nothing
+	## in particular caused the finding. Overridden by Dan directly, 27 Aug
+	## 2026, superseding an earlier design that hid this from the player
+	## entirely: "we are telling the truth. don't lie and don't hide."
+	var cause: String = ""
 
 	func to_form_text() -> String:
 		return "Subject %s. Record: %s. Is the subject's absence consistent with the surviving record? %s. %s" % [
@@ -73,7 +81,7 @@ class Finding extends RefCounted:
 
 ## Assess one subject. Returns a Finding rather than a bool, because the
 ## programme does not make decisions, it produces paperwork.
-static func assess(subject_id: String, certainty: Certainty, initials: String = "") -> Finding:
+static func assess(subject_id: String, certainty: Certainty, initials: String = "", cause: String = "") -> Finding:
 	if subject_id.is_empty():
 		push_error("Retrieval.assess() with no subject. Refusing to produce an unsigned finding about nobody - a blank form that reads as a completed one is exactly the failure this system is about.")
 		return null
@@ -82,6 +90,7 @@ static func assess(subject_id: String, certainty: Certainty, initials: String = 
 	f.certainty = certainty
 	f.consistent = certainty <= LIFTABLE_AT_OR_BELOW
 	f.initialled_by = initials
+	f.cause = cause
 	f.form_line = f.to_form_text()
 	return f
 

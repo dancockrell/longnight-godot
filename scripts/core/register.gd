@@ -1,39 +1,45 @@
 class_name Register
 extends RefCounted
 
-## The codex screen's data layer. Ruled by the lore thread, 27 Aug 2026
-## (world-aflame-godot/docs/wiki/concepts/state-not-causation.md), verified
-## in git before a line of this was written.
+## The codex screen's data layer.
 ##
-## THE RULE THIS FILE ENFORCES: show the state, never the causation. A row
-## may say what is true now. It may never say what made it true, when it
-## changed, or who changed it. Concretely: no timestamps, no "before", no
-## flag distinguishing a player-caused entry from a background one, and the
-## rendered text can never use the words "because", "now", "no longer", or
-## "since" - enforced as a lexical test in tests/run_tests.gd, the same
-## mechanism already used for the Flower and Dean Street beats.
+## OVERRIDDEN BY DAN DIRECTLY, 27 Aug 2026, superseding the lore thread's
+## "state, not causation" ruling this file was originally built against:
+## "we are not politically safe. we are telling the truth. don't lie and
+## don't hide. don't volunteer either... let the truth or not truth happen."
 ##
-## THE SECOND HALF OF THE RULE, and it is the one that actually does the
-## work: the register must show entries the player never touched, in the
-## same shape as the ones they did. A field that only appears where the
-## player acted is a scoreboard. This file mixes background entries in with
-## real signed findings and gives both the identical row shape on purpose -
-## there is no field anywhere in a Row that could tell a caller which is
-## which, because the programme's own paperwork would not know to ask.
+## The earlier version of this file banned the words "because", "now", "no
+## longer" and "since" from ever appearing in a rendered row, on the theory
+## that showing why something changed would be the game handing down a
+## verdict. That was the thing to stop doing, not a safeguard worth keeping.
+## A row may now say plainly what happened - a fact, not a judgment. "Don't
+## volunteer" is still respected: the cause is one flat clause, present only
+## when something genuinely caused it, never a sentence telling the reader
+## what to feel about it.
+##
+## What is kept from the original design, because it was never about hiding:
+## background entries the player never touched are still mixed in with
+## whatever their choices produced. That is not concealment, it is an
+## honest population - the parish register has more people in it than the
+## player's own actions, and showing only the rows the player caused would
+## be the dishonest picture, a scoreboard pretending to be a world.
 
 class Row extends RefCounted:
 	var subject_id: String = ""
 	var certainty_name: String = ""
 	var retrieval_available: bool = false
+	## Plain statement of what happened, when something genuinely did.
+	## Empty for background entries - nothing caused those, so there is
+	## nothing true to say about why. Never a value judgment.
+	var cause: String = ""
 
-	## The programme's own voice: flat, complete, incurious. This string is
-	## the ONLY thing a screen should ever render for a row - building a
-	## sentence around it in the UI layer is exactly the drift the ruling
-	## warns about.
 	func to_line() -> String:
-		return "Consistency: %s. Retrieval: %s." % [
+		var base := "Consistency: %s. Retrieval: %s." % [
 			certainty_name.to_upper(),
 			"AVAILABLE" if retrieval_available else "NOT AVAILABLE"]
+		if not cause.is_empty():
+			base += " " + cause
+		return base
 
 
 ## Background entries: parish register subjects nobody in this playthrough
@@ -102,6 +108,7 @@ static func build(signed_findings: Array) -> Array:
 		r2.subject_id = String(f.subject_id)
 		r2.certainty_name = Retrieval.CERTAINTY_NAME[f.certainty]
 		r2.retrieval_available = f.consistent
+		r2.cause = String(f.cause)
 		rows.append(r2)
 
 	# Sorted by subject id rather than left in insertion order. Insertion
