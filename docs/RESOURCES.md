@@ -5,6 +5,30 @@ layer. Kept as a durable list so a future session does not re-search for
 the same things, per Dan's request to "build a list of resources you find
 and post for yourself."
 
+## Open: character art generation
+
+Dan's bar for visual quality is explicit: **"Limbus Company or better."**
+That game leans heavily on illustrated character portraits, which needs a
+real image-generation pass this session did not run. Reason, checked
+directly rather than assumed: at the time this was raised, the GPU was at
+100% utilisation and 11,941 of 12,282 MB in use by other active sessions'
+work (per `visual-rig`'s own status line). Attempting a generation run
+under those conditions risks failing outright or disrupting another
+session's in-progress work — see CLAUDE.md on checking before using a
+shared resource.
+
+**Decision, confirmed with Dan directly:** ship UI/interface craft now
+(the geometric sigil identity system in `scripts/ui/sigil.gd`, the
+redesigned class select screen), revisit illustrated portraits once the
+GPU is free or a specific art pipeline/style reference is chosen. This
+machine has ComfyUI with models under
+`AppData\Local\Comfy-Desktop\ComfyUI-Shared` (see
+[[machine-specs-and-comfyui-paths]] in the memory store) - that is the
+likely route when this is picked back up, following the same pattern
+already used for the Raven reader and Ghost Front sprite pipelines
+(script the HTTP API on port 8188, character consistency via IP-Adapter/
+ControlNet rather than raw generation).
+
 ## Used, in the repo now
 
 - **GODOT-VFX-LIBRARY** — `github.com/haowg/GODOT-VFX-LIBRARY`, MIT licence
