@@ -38,6 +38,7 @@ func _start_battle() -> void:
 	var party: Array[Combatant] = []
 	var c := Combatant.from_roster(protagonist_data)
 	if c != null:
+		GameState.apply_wound_penalty(c)
 		party.append(c)
 	if party.is_empty():
 		# No protagonist chosen (reached this scene directly, e.g. in a
@@ -66,7 +67,9 @@ func _start_battle() -> void:
 	battle_screen.setup(party, foes, GameState.exposure, _on_battle_finished.bind(battle_screen))
 
 
-func _on_battle_finished(_won: bool, battle_screen: Node) -> void:
+func _on_battle_finished(_won: bool, downed_ids: PackedStringArray, battle_screen: Node) -> void:
+	for id in downed_ids:
+		GameState.record_wound(id)
 	battle_screen.queue_free()
 	self.visible = true
 	goto("codex_note")

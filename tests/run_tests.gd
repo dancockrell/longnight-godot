@@ -49,6 +49,7 @@ func _init() -> void:
 	test_classes()
 	test_enemies()
 	test_front_party()
+	test_wounds()
 	_summary()
 	quit(1 if _fail > 0 else 0)
 
@@ -1133,6 +1134,77 @@ func test_front_party() -> void:
 			all_player_side = false
 	_ok("front party combatants default to the player side",
 		all_player_side, "checked %d" % combatants.size())
+
+
+# ------------------------------------------------------------- wounds ---
+
+## GameState is the autoload, and referencing it by its bare singleton name
+## does not compile under --script (confirmed earlier this session - it is
+## a compile-time resolution failure, not merely a lifecycle question).
+## Loading the script file directly and instantiating it bypasses that: it
+## is the exact same class, just not reached through the global singleton
+## name, so its real methods run un-mocked rather than being re-implemented
+## by hand the way test_front_party() had to.
+func test_wounds() -> void:
+	print("\n[wounds - being downed is not a reset button]")
+	var gs = load("res://scripts/core/game_state.gd").new()
+	gs.reset()
+
+	_ok("wound_count starts at zero for anyone untouched",
+		gs.wound_count("anchor_current") == 0, "")
+
+	gs.record_wound("anchor_current")
+	_ok("record_wound increments", gs.wound_count("anchor_current") == 1, "")
+	gs.record_wound("anchor_current")
+	_ok("a second wound on the same id accumulates",
+		gs.wound_count("anchor_current") == 2, "")
+	_ok("a different id is unaffected", gs.wound_count("livewire") == 0, "")
+
+	var fresh := Combatant.from_roster(Classes.by_id("anchor_current"))
+	var original_max := fresh.max_hp
+	gs.apply_wound_penalty(fresh)
+	if _sabotage == "wounds_do_nothing":
+		fresh.max_hp = original_max
+	_ok("apply_wound_penalty actually reduces max HP for a wounded id",
+		fresh.max_hp < original_max,
+		"original=%d after=%d" % [original_max, fresh.max_hp])
+	_ok("current HP is set to the new, reduced max rather than left stale",
+		fresh.hp == fresh.max_hp, "hp=%d max=%d" % [fresh.hp, fresh.max_hp])
+
+	# The floor: no number of wounds should reduce a class to uselessness.
+	for i in 20:
+		gs.record_wound("livewire")
+	var battered := Combatant.from_roster(Classes.by_id("livewire"))
+	var battered_original := battered.max_hp
+	gs.apply_wound_penalty(battered)
+	var floor_expected: int = maxi(1, int(battered_original * gs.WOUND_HP_FLOOR_FRACTION))
+	_ok("20 wounds still respects the floor rather than reducing HP toward zero",
+		battered.max_hp == floor_expected,
+		"got %d, floor is %d (of original %d)" % [battered.max_hp, floor_expected, battered_original])
+
+	# Rebuilding fresh from source data must never compound - calling
+	# apply_wound_penalty twice on two SEPARATE fresh combatants for the
+	# same wounded id must give the identical result both times, because
+	# from_roster() always reads the original stat, never a previously
+	# mutated instance.
+	var again := Combatant.from_roster(Classes.by_id("anchor_current"))
+	gs.apply_wound_penalty(again)
+	_ok("wound penalty does not compound across rebuilds of the same id",
+		again.max_hp == fresh.max_hp,
+		"first build=%d second build=%d" % [fresh.max_hp, again.max_hp])
+
+	gs.reset()
+	_ok("reset() actually clears recorded wounds", gs.wound_count("anchor_current") == 0,
+		"count=%d" % gs.wound_count("anchor_current"))
+
+	# gs was built with load().new() specifically to avoid referencing the
+	# GameState autoload by its bare singleton name, which does not compile
+	# under --script - but that means it is a plain Node never added to any
+	# tree, and Nodes are not garbage-collected like RefCounted objects.
+	# Left unfreed, this leaked one Node plus everything reset() built
+	# inside it (Ledger, Relational, Archive) - confirmed with --verbose,
+	# not assumed.
+	gs.free()
 
 
 # --------------------------------------------------------------- summary ---

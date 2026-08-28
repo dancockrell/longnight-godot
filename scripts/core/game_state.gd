@@ -47,6 +47,7 @@ func reset() -> void:
 	facts = Relational.new()
 	archive = Archive.build_default()
 	signed_findings.clear()
+	wounds.clear()
 
 
 func choose(id: String) -> bool:
@@ -115,5 +116,44 @@ func front_party_combatants() -> Array[Combatant]:
 	for id in front_party_ids:
 		var c := Combatant.from_roster(Classes.by_id(id))
 		if c != null:
+			apply_wound_penalty(c)
 			out.append(c)
 	return out
+
+
+## Being downed in a fight is not a reset button. Per-id wound count,
+## persistent for the rest of this playthrough - the same principle
+## already governing everything else in this game (the Ledger, the
+## Register, the Carfax reckoning): the record does not get a second
+## draft. Keyed by combatant id, which works for both a class-built Front
+## party member and a named story protagonist without either needing to
+## know about the other's data source.
+var wounds: Dictionary = {}
+
+const WOUND_HP_PENALTY_FRACTION := 0.15   ## Per wound, of the class's ORIGINAL max HP.
+const WOUND_HP_FLOOR_FRACTION := 0.35     ## Never reduced below this fraction, however many wounds.
+
+
+func record_wound(id: String) -> void:
+	wounds[id] = int(wounds.get(id, 0)) + 1
+
+
+func wound_count(id: String) -> int:
+	return int(wounds.get(id, 0))
+
+
+## Mutates a freshly-built Combatant to reflect however many times this id
+## has been downed before. Computed from the combatant's OWN current
+## max_hp, which for a freshly-built Combatant is always the class/roster's
+## original value (from_roster() reads the source data fresh every call,
+## never a previously-wounded instance) - so this cannot compound
+## incorrectly even though it is called on a new object each time.
+func apply_wound_penalty(c: Combatant) -> void:
+	var n := wound_count(c.id)
+	if n <= 0:
+		return
+	var original := c.max_hp
+	var floor_hp: int = maxi(1, int(original * WOUND_HP_FLOOR_FRACTION))
+	var reduced: int = original - int(original * WOUND_HP_PENALTY_FRACTION * n)
+	c.max_hp = maxi(floor_hp, reduced)
+	c.hp = c.max_hp

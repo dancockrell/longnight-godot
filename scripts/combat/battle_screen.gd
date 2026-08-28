@@ -364,11 +364,25 @@ func _hit_feedback(target: Combatant, loud: bool) -> void:
 
 func _end_battle() -> void:
 	var won := not battle.living_party().is_empty()
+
+	# Anyone on the player's side reduced to 0 HP this fight, regardless of
+	# whether the fight was ultimately won - a wound is not conditioned on
+	# the outcome, it is conditioned on what happened to that person during
+	# it. Reported by id so the caller can record it against whichever data
+	# source (Roster or Classes) actually built this combatant, without
+	# this screen needing to know which one that was.
+	var downed_ids := PackedStringArray()
+	for c in battle.party:
+		if not c.alive:
+			downed_ids.append(c.id)
+
 	for child in _action_panel.get_children():
 		child.queue_free()
 	_log_line("")
 	_log_line("[b]%s[/b]" % ("The others withdraw." if won else "Your party is overwhelmed."))
+	if not downed_ids.is_empty():
+		_log_line("This is not a wound anyone here walks away from clean. It stays.")
 	var cont := _make_button("Continue.", func():
 		if _on_finished.is_valid():
-			_on_finished.call(won))
+			_on_finished.call(won, downed_ids))
 	_action_panel.add_child(cont)

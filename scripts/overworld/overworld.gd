@@ -342,7 +342,11 @@ func _engage(faction: String, count: int) -> void:
 	battle_screen.setup(party, foes, exposure, _on_battle_finished.bind(battle_screen))
 
 
-func _on_battle_finished(_won: bool, battle_screen: Node) -> void:
+func _on_battle_finished(_won: bool, downed_ids: PackedStringArray, battle_screen: Node) -> void:
+	for id in downed_ids:
+		GameState.record_wound(id)
+	if not downed_ids.is_empty():
+		_label.text = "%d of your party carry this fight with them now, permanently." % downed_ids.size()
 	battle_screen.queue_free()
 	self.visible = true
 	set_process_unhandled_input(true)
