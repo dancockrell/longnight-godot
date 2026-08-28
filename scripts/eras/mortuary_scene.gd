@@ -49,13 +49,16 @@ func _advance(next_id: String, action: String) -> void:
 
 
 func _depart() -> void:
-	header.text = "END OF BUILT CONTENT"
+	header.text = "OUTSIDE THE SHED"
 	body.text = "\n".join(PackedStringArray([
 		"Exposure spent this scene: %d" % GameState.exposure.value,
 		"",
 		"Whether your own account of the shed survives is a question for the register, not for this screen.",
+		"",
+		"There is more of this city than one shed and two streets.",
 	]))
 	for child in buttons.get_children():
 		child.queue_free()
-	buttons.add_child(make_button("Check the register.", func(): get_tree().change_scene_to_file("res://scenes/Register.tscn")))
-	teaches.text = "teaches: nothing further is built past this point yet."
+	buttons.add_child(make_button("Walk on.", func(): get_tree().change_scene_to_file("res://scenes/Clerkenwell.tscn")))
+	buttons.add_child(make_button("Check the register first.", func(): get_tree().change_scene_to_file("res://scenes/Register.tscn")))
+	teaches.text = "teaches: the third scene of Act One is not the last one."

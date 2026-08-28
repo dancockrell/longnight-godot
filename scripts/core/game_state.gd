@@ -87,3 +87,33 @@ func mark_current_scene(path: String) -> void:
 
 func era_scene_path() -> String:
 	return current_scene_path
+
+
+## The 1944 front: a class-built party fighting Werk Nachtigall and Hyakki
+## Yakō directly, per Dan's direction. Kept entirely separate from
+## protagonist_id/party_class_ids namespacing collision risk - the 1888
+## story scenes (Camp, Goulston, Flower and Dean, the mortuary shed,
+## Clerkenwell) are unchanged and keep using the six named protagonists in
+## roster.gd. This is an additive second mode, not a replacement.
+var front_party_ids: Array[String] = []
+
+
+func choose_front_party(ids: Array[String]) -> bool:
+	if ids.is_empty():
+		push_error("choose_front_party() called with no classes. Refusing to start the front with an empty party - Battle.gd already treats that as a bug, not a fight.")
+		return false
+	for id in ids:
+		if Classes.by_id(id).is_empty():
+			# Classes.by_id already named the bad id.
+			return false
+	front_party_ids = ids
+	return true
+
+
+func front_party_combatants() -> Array[Combatant]:
+	var out: Array[Combatant] = []
+	for id in front_party_ids:
+		var c := Combatant.from_roster(Classes.by_id(id))
+		if c != null:
+			out.append(c)
+	return out

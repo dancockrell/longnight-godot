@@ -84,15 +84,53 @@ Project 42, and a fog-noise bed for 1888 with no bible entry to answer to).
 The camp tutorial and the Goulston Street scene are both written, not
 placeholder text.
 
+**Two game modes now exist side by side, deliberately.** The 1888 story
+scenes (below) are unchanged. Alongside them, per Dan's direction to build
+an FF1-style clone in this universe: **Title → "THE FRONT" → build a party
+of up to 4 from 20 invented classes (`scripts/data/classes.gd`, three
+pillars, none of them named individuals — a class, not a biography, since
+"waiting for characters" doesn't have to block a playable party system) →
+fight Werk Nachtigall or Hyakki Yakō directly in 1944** using the same
+battle engine as Clerkenwell's yard fight. Werk Nachtigall's roster is
+built from the real, decided taxonomy in
+`world-aflame-godot/docs/WORLD-BESTIARY.md` §6a (Muster 12 "patients",
+Baureihe 7 "whistlers", and so on) plus one boss-scale extrapolation from
+the same line. Hyakki Yakō's roster is deliberately thin — two Fog-branch
+disorientation effects, no named monster forms — because the file that
+fixes its 25 canon forms (`HY-THE-FUSED-ROSTER.md`) doesn't exist in the
+shared repo yet and the lore explicitly warns this faction needs a
+stricter guard than the bestiary. See `docs/RESOURCES.md`.
+
+A splash screen (`scenes/Splash.tscn`, engine + MIT VFX credit) now leads
+into Title, and scene changes on the main path fade through black
+(`scripts/core/scene_transition.gd`) rather than cutting hard.
+
+The battle screen (`scripts/combat/battle_screen.gd`) was redesigned once
+already this pass, after direct feedback that a first draft was "just a
+menu system." It keeps the classic per-character menu (this genre's own
+convention, not avoided this time) but makes **Exposure, not HP, the
+visual centrepiece** — a colour-coded band banner across the top, since
+that's this game's actual stake — plus hit-flash and screen-shake juice
+from the vendored MIT shader library, and an animated fog wash instead of
+a flat background.
+
 **Not yet true:**
 - **Nothing is balanced.** Every combat number is a placeholder.
   `LOUD_ENOUGH_TO_BE_WRITTEN_DOWN` sits between Covered and Forward play by
-  measurement, not by tuning.
+  measurement, not by tuning. The 20 classes and the enemy rosters are
+  equally unbalanced against each other — built for structural completeness,
+  not for a tuned fight.
 - **The six protagonists have a thesis and a bill each, not a written arc.**
   Good enough for a select screen, not for a party that argues with itself.
-- **Three scenes of Act One are built: Goulston Street, Flower and Dean
-  Street, and the mortuary shed.** Clerkenwell and Carfax are designed in
-  the old canvas game and not yet ported. The mortuary shed is the one
+- **Act One is complete, start to finish: Goulston Street, Flower and Dean
+  Street, the mortuary shed, Clerkenwell, and Carfax.** Clerkenwell's yard
+  ends in this project's first real combat encounter (invented "resurrection
+  men" — a real, documented Victorian criminal trade, not a monster).
+  Carfax is the act's finale and deliberately has no combat beat at all:
+  per `docs/DESIGN.md`, Dracula was never going to be a health bar, and the
+  "reckoning" beat there is generated at runtime from the actual
+  playthrough's Ledger and Register state rather than scripted text. The
+  mortuary shed is the one
   place in the setting where an ethical rule and the game's own mechanics
   enforce each other rather than the rule being a constraint layered on
   top: the murdered women of Whitechapel are the most documented

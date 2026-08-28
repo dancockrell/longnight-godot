@@ -94,6 +94,24 @@ func _ready() -> void:
 	begin.pressed.connect(_begin)
 	col.add_child(begin)
 
+	var front := Button.new()
+	front.text = "THE FRONT — BUILD A PARTY"
+	front.custom_minimum_size = Vector2(280, 44)
+	front.add_theme_font_size_override("font_size", 13)
+	var fstyle := StyleBoxFlat.new()
+	fstyle.bg_color = Color("#12161c")
+	fstyle.border_color = CYAN
+	fstyle.set_border_width_all(1)
+	fstyle.set_content_margin_all(8)
+	front.add_theme_stylebox_override("normal", fstyle)
+	var fhover := fstyle.duplicate()
+	fhover.bg_color = CYAN.darkened(0.65)
+	front.add_theme_stylebox_override("hover", fhover)
+	front.add_theme_color_override("font_color", INK)
+	front.add_theme_color_override("font_hover_color", CYAN)
+	front.pressed.connect(func(): SceneTransition.go("res://scenes/ClassSelect.tscn"))
+	col.add_child(front)
+
 	var footnote := Label.new()
 	footnote.text = "Camp Iron Bell, Mississippi, 1944"
 	footnote.add_theme_font_size_override("font_size", 11)
@@ -114,4 +132,4 @@ func _process(delta: float) -> void:
 
 
 func _begin() -> void:
-	get_tree().change_scene_to_file("res://scenes/Select.tscn")
+	SceneTransition.go("res://scenes/Select.tscn")

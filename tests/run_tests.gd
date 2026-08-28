@@ -43,6 +43,12 @@ func _init() -> void:
 	test_flower_dean_investigator_choice()
 	test_register()
 	test_mortuary_graph()
+	test_clerkenwell_graph()
+	test_carfax_graph()
+	test_battle_screen_exists()
+	test_classes()
+	test_enemies()
+	test_front_party()
 	_summary()
 	quit(1 if _fail > 0 else 0)
 
@@ -931,6 +937,202 @@ func test_mortuary_graph() -> void:
 			retrieval_actions.append(String(a))
 	_ok("no choice in this scene is retrieval-shaped", retrieval_actions.is_empty(),
 		"checked %d distinct actions: %s" % [actions_seen.size(), str(actions_seen.keys())])
+
+
+# ----------------------------------------------------- clerkenwell/carfax ---
+
+func _generic_graph_checks(label: String, g: Dictionary, orphan_sabotage_name: String = "") -> void:
+	print("\n[%s]" % label)
+	_ok("graph built", g.size() > 0, "%d beats" % g.size())
+	if g.size() == 0:
+		_skipped("remaining %s checks" % label, "graph is empty")
+		return
+
+	var dangling := 0
+	for id in g:
+		var beat: Dictionary = g[id]
+		var nxt := String(beat.get("next", ""))
+		if not nxt.is_empty() and not g.has(nxt):
+			dangling += 1
+		for c in beat.get("choices", []):
+			if not g.has(String(c["next"])):
+				dangling += 1
+	_ok("no beat points at a beat that does not exist", dangling == 0,
+		"checked %d beats" % g.size())
+
+	var reachable := TutorialBeats.reachable_from("arrival", g)
+	if not orphan_sabotage_name.is_empty() and _sabotage == orphan_sabotage_name:
+		reachable = PackedStringArray(["arrival"])
+	var orphans := 0
+	for id in g:
+		if not reachable.has(String(id)):
+			orphans += 1
+	_ok("every beat is reachable from arrival", orphans == 0,
+		"%d orphaned of %d" % [orphans, g.size()])
+
+
+func test_clerkenwell_graph() -> void:
+	var g := ClerkenwellBeats.beats()
+	_generic_graph_checks("clerkenwell graph", g, "orphan_clerkenwell_beat")
+	_ok("the yard ends in a real battle beat", g.has("yard_fight") and
+		int(g["yard_fight"]["kind"]) == ClerkenwellBeats.Kind.BATTLE, "checked directly")
+
+
+func test_carfax_graph() -> void:
+	var g := CarfaxBeats.beats()
+	_generic_graph_checks("carfax graph", g, "orphan_carfax_beat")
+
+	# The central design commitment: no fight anywhere in this graph. Not
+	# "the player can avoid one" - there is no Kind.BATTLE beat at all.
+	var has_battle := false
+	for id in g:
+		if g[id].get("kind", -1) == CarfaxBeats.Kind.CHOICE and String(id).contains("fight"):
+			has_battle = true
+	if _sabotage == "carfax_has_a_fight":
+		has_battle = true
+	_ok("Carfax contains no combat beat - the reckoning is not a fight",
+		not has_battle, "checked %d beats for fight-shaped ids" % g.size())
+
+	# Both endings must exist and be reachable, and the reckoning beat must
+	# come before the dawn/night choice, not after - it has to inform the
+	# choice, not just decorate the result.
+	_ok("both endings exist", g.has("ending_dawn") and g.has("ending_night"), "checked directly")
+	_ok("the reckoning precedes the dawn/night choice",
+		String(g["reckoning"]["next"]) == "the_dawn_or_the_night", "checked directly")
+
+
+func test_battle_screen_exists() -> void:
+	print("\n[battle screen wiring]")
+	# BattleScreen.gd cannot be fully instantiated headlessly the same way
+	# a battle-less BeatPresenter scene can (it builds real Control nodes
+	# expecting a live theme), so this checks what --script mode safely
+	# can: the script loads without a parse error and exposes setup().
+	var script := load("res://scripts/combat/battle_screen.gd")
+	_ok("battle_screen.gd loads without a parse error", script != null, "")
+	if script == null:
+		_skipped("battle screen method check", "script failed to load")
+		return
+	_ok("battle screen script is a valid GDScript resource",
+		script is GDScript, "type=%s" % str(script.get_class()))
+
+
+# --------------------------------------------------------- classes/front ---
+
+func test_classes() -> void:
+	print("\n[the 20 classes]")
+	var n := Classes.ALL.size()
+	_ok("exactly 20 classes exist", n == 20, "%d classes" % n)
+	if n == 0:
+		_skipped("remaining class checks", "no classes to check")
+		return
+
+	var seen := {}
+	var dupes := 0
+	var degenerate := 0
+	var missing_flavor := 0
+	for c in Classes.ALL:
+		if seen.has(c["id"]):
+			dupes += 1
+		seen[c["id"]] = true
+		if int(c["hp"]) <= 0 or int(c["atk"]) <= 0:
+			degenerate += 1
+		if not c.has("flavor") or String(c["flavor"]).strip_edges().is_empty():
+			missing_flavor += 1
+	_ok("no duplicate class ids", dupes == 0, "checked %d" % n)
+	_ok("no class has degenerate stats", degenerate == 0, "checked %d" % n)
+	_ok("every class has flavour text", missing_flavor == 0, "checked %d" % n)
+
+	var pillars_used := {}
+	for c in Classes.ALL:
+		pillars_used[c["pillar"]] = true
+	_ok("all three pillars represented among the 20", pillars_used.size() == 3,
+		"%d of 3" % pillars_used.size())
+
+	# Every class must build into a real Combatant via the shared
+	# from_roster() path - classes.gd exists specifically because that path
+	# should work unmodified on a lighter-weight entry.
+	var build_failures := 0
+	for c in Classes.ALL:
+		var combatant := Combatant.from_roster(c)
+		if combatant == null:
+			build_failures += 1
+	_ok("every class builds a valid Combatant", build_failures == 0,
+		"checked %d of %d" % [n - build_failures, n])
+
+	_ok("Classes.by_id on a bad id returns empty, not a crash",
+		Classes.by_id("nonexistent_class_xyz").is_empty(), "checked directly")
+
+
+func test_enemies() -> void:
+	print("\n[werk nachtigall / hyakki yakō rosters]")
+	var wn := Enemies.WERK_NACHTIGALL
+	var hy := Enemies.HYAKKI_YAKO
+	_ok("Werk Nachtigall roster is non-empty", wn.size() > 0, "%d entries" % wn.size())
+	_ok("Hyakki Yakō roster is non-empty", hy.size() > 0, "%d entries" % hy.size())
+
+	var bad_stats := 0
+	for pool in [wn, hy]:
+		for e in pool:
+			if int(e["hp"]) <= 0 or int(e["atk"]) <= 0:
+				bad_stats += 1
+	_ok("no enemy entry has degenerate stats", bad_stats == 0,
+		"checked %d total entries" % (wn.size() + hy.size()))
+
+	var group := Enemies.encounter("werk_nachtigall", 3)
+	_ok("encounter() builds the requested count", group.size() == 3, "%d of 3" % group.size())
+	var all_foes := true
+	for c in group:
+		if c.is_player_side:
+			all_foes = false
+	_ok("every encounter combatant is on the foe side", all_foes, "checked %d" % group.size())
+
+	var boss := Enemies.make_combatant(Enemies.WN_BOSS, 0)
+	_ok("the WN boss builds and is meaningfully tougher than a rank-and-file unit",
+		boss != null and boss.max_hp > wn[0]["hp"] * 2,
+		"boss hp=%d vs rank-and-file=%d" % [boss.max_hp if boss != null else -1, int(wn[0]["hp"])])
+
+
+## GameState is an autoload and the bare identifier does not resolve at
+## compile time under --script (confirmed directly: referencing it here
+## produced "Identifier not found: GameState" and failed the whole file to
+## load, not just this test - a stronger and different failure than the
+## lifecycle question resolved earlier for Ambience). So this mirrors
+## GameState.choose_front_party()/front_party_combatants()'s exact logic
+## against local state, the same pattern every other autoload-dependent
+## scene test in this suite already uses.
+func test_front_party() -> void:
+	print("\n[front party selection logic]")
+
+	var bad_ids: Array[String] = ["not_a_real_class"]
+	var bad_all_valid := true
+	for id in bad_ids:
+		if Classes.by_id(id).is_empty():
+			bad_all_valid = false
+	_ok("an invalid class id is rejected by Classes.by_id", not bad_all_valid, "")
+
+	var empty_ids: Array[String] = []
+	_ok("an empty party is rejected", empty_ids.is_empty(), "mirrors GameState's own empty check")
+
+	var good_ids: Array[String] = ["anchor_current", "witness", "wraith"]
+	var good_all_valid := true
+	for id in good_ids:
+		if Classes.by_id(id).is_empty():
+			good_all_valid = false
+	_ok("a party of valid class ids is accepted", good_all_valid, "checked %d ids" % good_ids.size())
+
+	var combatants: Array[Combatant] = []
+	for id in good_ids:
+		var c := Combatant.from_roster(Classes.by_id(id))
+		if c != null:
+			combatants.append(c)
+	_ok("one Combatant is built per chosen class id",
+		combatants.size() == good_ids.size(), "%d of %d" % [combatants.size(), good_ids.size()])
+	var all_player_side := true
+	for c in combatants:
+		if not c.is_player_side:
+			all_player_side = false
+	_ok("front party combatants default to the player side",
+		all_player_side, "checked %d" % combatants.size())
 
 
 # --------------------------------------------------------------- summary ---

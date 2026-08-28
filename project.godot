@@ -7,7 +7,7 @@ config_version=5
 
 config/name="The Long Night"
 config/description="1888. A city looking hard in one direction, and therefore nowhere else."
-run/main_scene="res://scenes/Boot.tscn"
+run/main_scene="res://scenes/Splash.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [display]
@@ -27,3 +27,4 @@ textures/canvas_textures/default_texture_filter=0
 
 GameState="*res://scripts/core/game_state.gd"
 Ambience="*res://scripts/core/ambience.gd"
+SceneTransition="*res://scripts/core/scene_transition.gd"

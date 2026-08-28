@@ -19,6 +19,13 @@ var id: String = ""
 var display_name: String = ""
 var pillar: Pillars.Kind = Pillars.Kind.CHRONO
 var is_player_side: bool = true
+## Read directly by Battle for threat-rate lookup, rather than Battle doing
+## a live Roster.by_id(actor.id) call - that call only ever found protagonists
+## in roster.gd and silently returned {} for anyone built from classes.gd,
+## which would have made every class-based party member threat-rate 1.0
+## with no error to notice it by. Set once at construction; the source data
+## (Roster or Classes) never needs to be looked up again after this.
+var role: String = ""
 
 var max_hp: int = 1
 var hp: int = 1
@@ -53,6 +60,7 @@ static func from_roster(entry: Dictionary) -> Combatant:
 	c.atk = int(entry["atk"])
 	c.def = int(entry["def"])
 	c.spd = int(entry["spd"])
+	c.role = String(entry.get("role", ""))
 	c.anachronism = _anachronism_for(int(entry["origin_year"]))
 	return c
 

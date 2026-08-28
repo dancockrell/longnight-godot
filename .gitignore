@@ -1,2 +1,5 @@
 .godot/
 *.tmp
+# The full vendored clone, not just the files copied into assets/vfx/ - it
+# carries its own .git and would otherwise create a nested-repo mess.
+vendor/

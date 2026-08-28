@@ -113,10 +113,12 @@ func _spend_noise(actor: Combatant, use_pillar: bool, magnitude: int) -> void:
 
 
 func _add_threat(actor: Combatant, amount: float) -> void:
-	var role_rate: float = 1.0
-	var entry := Roster.by_id(actor.id)
-	if not entry.is_empty():
-		role_rate = THREAT_RATE.get(String(entry["role"]), 1.0)
+	# Reads actor.role directly rather than calling Roster.by_id(actor.id).
+	# That call only ever found protagonists in roster.gd - it silently
+	# returned {} (and pushed an error) for anyone built from classes.gd,
+	# so every class-based party member got role_rate 1.0 with no signal
+	# that the lookup had failed for the wrong reason.
+	var role_rate: float = THREAT_RATE.get(actor.role, 1.0)
 	actor.threat += amount * role_rate
 
 
