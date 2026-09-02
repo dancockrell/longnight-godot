@@ -12,7 +12,7 @@ That game leans heavily on illustrated character portraits, which needs a
 real image-generation pass this session did not run. Reason, checked
 directly rather than assumed: at the time this was raised, the GPU was at
 100% utilisation and 11,941 of 12,282 MB in use by other active sessions'
-work (per `visual-rig`'s own status line). Attempting a generation run
+work (per a since-deleted tool's status line). Attempting a generation run
 under those conditions risks failing outright or disrupting another
 session's in-progress work — see CLAUDE.md on checking before using a
 shared resource.
